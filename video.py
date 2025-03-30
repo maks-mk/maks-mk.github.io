@@ -68,54 +68,338 @@ def get_resource_path(relative_path: str) -> str:
 class VideoURL:
     """Класс для работы с URL видео и определения сервиса."""
     
+    # Путь к файлу конфигурации паттернов URL
+    CONFIG_FILE = "url_patterns.json"
+    
     # Константы с паттернами URL для разных сервисов
     URL_PATTERNS = {
         'YouTube': [
+            # Стандартные видео
             r'^https?://(?:www\.)?youtube\.com/watch\?v=[\w-]{11}(?:&\S*)?$',
             r'^https?://youtu\.be/[\w-]{11}(?:\?\S*)?$',
+            # Шорты
             r'^https?://(?:www\.)?youtube\.com/shorts/[\w-]{11}(?:\?\S*)?$',
-            r'^https?://(?:www\.)?youtube\.com/embed/[\w-]{11}(?:\?\S*)?$'
+            # Встраиваемое видео
+            r'^https?://(?:www\.)?youtube\.com/embed/[\w-]{11}(?:\?\S*)?$',
+            # Плейлисты
+            r'^https?://(?:www\.)?youtube\.com/playlist\?list=[\w-]+(?:&\S*)?$',
+            # Каналы
+            r'^https?://(?:www\.)?youtube\.com/(?:channel|c|user)/[\w-]+(?:/\S*)?$',
+            # Общий более гибкий паттерн для обработки новых форматов
+            r'^https?://(?:www\.)?youtube\.com/\S+[\?&]v=[\w-]{11}(?:&\S*)?$',
+            # YouTube Music
+            r'^https?://music\.youtube\.com/watch\?v=[\w-]{11}(?:&\S*)?$',
+            # YouTube TV
+            r'^https?://(?:www\.)?youtube\.com/tv#/watch/video/control\?v=[\w-]{11}$',
+            # Плейлисты YouTube Music
+            r'^https?://music\.youtube\.com/playlist\?list=[\w-]+(?:&\S*)?$',
+            # YouTube Clips
+            r'^https?://(?:www\.)?youtube\.com/clip/[\w-]+(?:\?\S*)?$'
         ],
         'VK': [
+            # Стандартные видео
             r'^https?://(?:www\.)?vk\.com/video-?\d+_\d+(?:\?\S*)?$',
-            r'^https?://(?:www\.)?vkvideo\.ru/video-?\d+_\d+(?:\?\S*)?$'
+            r'^https?://(?:www\.)?vkvideo\.ru/video-?\d+_\d+(?:\?\S*)?$',
+            # Видео в группах
+            r'^https?://(?:www\.)?vk\.com/(?:video|clip)-?\d+(?:_\d+)?(?:\?\S*)?$',
+            # Альбомы с видео
+            r'^https?://(?:www\.)?vk\.com/videos-?\d+(?:\?\S*)?$',
+            # Видео по относительному пути
+            r'^https?://(?:www\.)?vk\.com/\S+$',
+            # Клипы
+            r'^https?://(?:www\.)?vk\.com/clips-?\d+(?:\?\S*)?$',
+            # Мобильная версия
+            r'^https?://(?:m\.)?vk\.com/video(?:_ext)?\.php\?.*oid=(?:-?\d+).*id=\d+.*$',
+            # VK video embed
+            r'^https?://(?:www\.)?vk\.com/video_ext\.php\?.*oid=(?:-?\d+).*id=\d+.*$'
         ],
         'RuTube': [
+            # Стандартные видео
             r'^https?://(?:www\.)?rutube\.ru/video/[\w-]{32}/?(?:\?\S*)?$',
-            r'^https?://(?:www\.)?rutube\.ru/play/embed/[\w-]{32}/?(?:\?\S*)?$'
+            r'^https?://(?:www\.)?rutube\.ru/play/embed/[\w-]{32}/?(?:\?\S*)?$',
+            # Каналы
+            r'^https?://(?:www\.)?rutube\.ru/channel/\d+(?:/\S*)?$',
+            # Плейлисты 
+            r'^https?://(?:www\.)?rutube\.ru/playlist/\d+(?:/\S*)?$',
+            # Более общий паттерн для обработки новых форматов
+            r'^https?://(?:www\.)?rutube\.ru/\S+/[\w-]{32}/?(?:\?\S*)?$',
+            # Видео по ID
+            r'^https?://(?:www\.)?rutube\.ru/video/(?:private/)?[\w-]{32}/?(?:\?\S*)?$',
+            # Мобильная версия
+            r'^https?://(?:m\.)?rutube\.ru/video/[\w-]{32}/?(?:\?\S*)?$',
+            # Embed с параметрами
+            r'^https?://(?:www\.)?rutube\.ru/play/embed/[\w-]{32}\?.*$',
+            # Новые URL-адреса rutube
+            r'^https?://(?:www\.)?rutube\.ru/(?:tracks|live|movies|person|metainfo)/[\w-]+/?(?:\?\S*)?$'
         ],
         'Одноклассники': [
-            r'^https?://(?:www\.)?ok\.ru/video/\d+(?:\?\S*)?$'
+            # Стандартные видео
+            r'^https?://(?:www\.)?ok\.ru/video/\d+(?:\?\S*)?$',
+            # Видео в группах
+            r'^https?://(?:www\.)?ok\.ru/(?:group|profile)/\d+/\S+$',
+            # Более гибкий паттерн для обработки других форматов
+            r'^https?://(?:www\.)?ok\.ru/\S+/\d+(?:/\S*)?$',
+            # Мобильная версия (m.ok.ru)
+            r'^https?://(?:m\.)?ok\.ru/dk\?.*(?:st\.mvId|st\.discId)=\d+.*$',
+            # Видео по ID и токену
+            r'^https?://(?:www\.)?ok\.ru/videoembed/\d+(?:\?\S*)?$',
+            # Мобильное приложение
+            r'^https?://(?:www\.)?ok\.ru/live/\d+(?:\?\S*)?$',
+            # Прямые трансляции
+            r'^https?://(?:www\.)?ok\.ru/video/\d+/movieLayer(?:\?\S*)?$'
         ],
         'Mail.ru': [
-            r'^https?://(?:www\.)?my\.mail\.ru/(?:[\w/]+/)?video/(?:[\w/]+/)\d+\.html(?:\?\S*)?$'
+            # Стандартные видео
+            r'^https?://(?:www\.)?my\.mail\.ru/(?:[\w/]+/)?video/(?:[\w/]+/)\d+\.html(?:\?\S*)?$',
+            # Новые форматы видео
+            r'^https?://(?:www\.)?my\.mail\.ru/(?:[\w/]+/)?video/(?:[\w/]+/)?(?:\S+)/\d+(?:\.html)?(?:\?\S*)?$',
+            # Более гибкий паттерн
+            r'^https?://(?:www\.)?my\.mail\.ru/(?:[\w/]+/)?video/(?:[\w/]+/)?(?:\S+)(?:\?\S*)?$',
+            # Мобильная версия
+            r'^https?://(?:m\.)?my\.mail\.ru/(?:[\w/]+/)?video/(?:[\w/]+/)?(?:\d+|[\w-]+)(?:\.html)?(?:\?\S*)?$',
+            # Видео в почте
+            r'^https?://(?:www\.)?my\.mail\.ru/mail/[\w\.-]+/video/_myvideo/\d+\.html(?:\?\S*)?$',
+            # Видео от сообществ
+            r'^https?://(?:www\.)?my\.mail\.ru/community/[\w\.-]+/video/\d+\.html(?:\?\S*)?$',
+            # Плейлисты
+            r'^https?://(?:www\.)?my\.mail\.ru/(?:[\w/]+/)?video/playlist/\d+(?:\.html)?(?:\?\S*)?$'
+        ],
+        'Bilibili': [
+            # Стандартные видео
+            r'^https?://(?:www\.)?bilibili\.com/video/[Bb][Vv][\w-]+(?:\?\S*)?$',
+            r'^https?://(?:www\.)?b23\.tv/[Bb][Vv][\w-]+(?:\?\S*)?$',
+            # Короткая ссылка
+            r'^https?://(?:www\.)?b23\.tv/[\w-]+(?:\?\S*)?$',
+            # Пользовательские страницы
+            r'^https?://(?:space|www)\.bilibili\.com/[\d]+(?:/?\?\S*)?$'
+        ],
+        'TikTok': [
+            # Стандартные видео
+            r'^https?://(?:www\.)?tiktok\.com/@[\w\.-]+/video/\d+(?:\?\S*)?$',
+            # Короткие ссылки
+            r'^https?://(?:vm|vt)\.tiktok\.com/[\w\.-]+/?(?:\?\S*)?$',
+            # Мобильная версия
+            r'^https?://(?:m\.)?tiktok\.com/v/\d+(?:\.html)?(?:\?\S*)?$',
+            # Embed-версия
+            r'^https?://(?:www\.)?tiktok\.com/embed/v2/\d+(?:\?\S*)?$',
+            # Поисковые запросы 
+            r'^https?://(?:www\.)?tiktok\.com/tag/[\w\.-]+(?:\?\S*)?$',
+            # Новые форматы TikTok
+            r'^https?://(?:www\.)?tiktok\.com/t/[\w\.-]+/?(?:\?\S*)?$'
+        ],
+        'Twitch': [
+            # Стандартные клипы
+            r'^https?://(?:www\.)?twitch\.tv/(?!videos/)[\w\.-]+/clip/[\w\.-]+(?:\?\S*)?$',
+            # Прямые трансляции
+            r'^https?://(?:www\.)?twitch\.tv/[\w\.-]+/?(?:\?\S*)?$',
+            # Видео по ID
+            r'^https?://(?:www\.)?twitch\.tv/videos/\d+(?:\?\S*)?$',
+            # Категории
+            r'^https?://(?:www\.)?twitch\.tv/directory/game/[\w\%\+\.-]+(?:\?\S*)?$',
+            # Клипы по ID
+            r'^https?://clips\.twitch\.tv/[\w\.-]+(?:\?\S*)?$'
+        ],
+        'Vimeo': [
+            # Стандартные видео
+            r'^https?://(?:www\.)?vimeo\.com/\d+(?:\?\S*)?$',
+            # Каналы
+            r'^https?://(?:www\.)?vimeo\.com/channels/[\w\.-]+(?:/\d+)?(?:\?\S*)?$',
+            # Группы
+            r'^https?://(?:www\.)?vimeo\.com/groups/[\w\.-]+/videos/\d+(?:\?\S*)?$',
+            # Альбомы
+            r'^https?://(?:www\.)?vimeo\.com/album/\d+/video/\d+(?:\?\S*)?$',
+            # Обзоры
+            r'^https?://(?:www\.)?vimeo\.com/review/\d+/\d+(?:\?\S*)?$',
+            # Embed
+            r'^https?://player\.vimeo\.com/video/\d+(?:\?\S*)?$'
+        ],
+        'Facebook': [
+            # Стандартные видео
+            r'^https?://(?:www\.|web\.|m\.)?facebook\.com/(?:watch/?\?v=|[\w\.-]+/videos/)\d+(?:\?\S*)?$',
+            # Видео в постах
+            r'^https?://(?:www\.|web\.|m\.)?facebook\.com/[\w\.-]+/posts/\d+(?:\?\S*)?$',
+            # Видео с хэштегами
+            r'^https?://(?:www\.|web\.|m\.)?facebook\.com/hashtag/[\w\.-]+(?:\?\S*)?$',
+            # Короткие ссылки
+            r'^https?://fb\.watch/[\w\.-]+/?(?:\?\S*)?$',
+            # Рилы
+            r'^https?://(?:www\.|web\.|m\.)?facebook\.com/reel/\d+(?:\?\S*)?$'
+        ],
+        'Instagram': [
+            # Стандартные посты
+            r'^https?://(?:www\.)?instagram\.com/p/[\w\.-]+/?(?:\?\S*)?$',
+            # Рилы
+            r'^https?://(?:www\.)?instagram\.com/reel/[\w\.-]+/?(?:\?\S*)?$',
+            # Сторис
+            r'^https?://(?:www\.)?instagram\.com/stories/[\w\.-]+/\d+/?(?:\?\S*)?$',
+            # IGTV
+            r'^https?://(?:www\.)?instagram\.com/tv/[\w\.-]+/?(?:\?\S*)?$',
+            # Профили
+            r'^https?://(?:www\.)?instagram\.com/[\w\.-]+/?(?:\?\S*)?$'
+        ],
+        'Telegram': [
+            # Видео из каналов
+            r'^https?://(?:www\.)?t\.me/(?!s/)[\w\.-]+/\d+(?:\?\S*)?$',
+            # Публичные каналы
+            r'^https?://(?:www\.)?t\.me/s/[\w\.-]+/\d+(?:\?\S*)?$',
+            # Embed
+            r'^https?://(?:www\.)?t\.me/embed/[\w\.-]+/\d+(?:\?\S*)?$'
+        ],
+        'Dailymotion': [
+            # Стандартные видео
+            r'^https?://(?:www\.)?dailymotion\.com/video/[\w]+(?:\?\S*)?$',
+            # Плейлисты
+            r'^https?://(?:www\.)?dailymotion\.com/playlist/[\w]+(?:\?\S*)?$',
+            # Embed
+            r'^https?://(?:www\.)?dailymotion\.com/embed/video/[\w]+(?:\?\S*)?$',
+            # Пользователи
+            r'^https?://(?:www\.)?dailymotion\.com/[\w]+(?:\?\S*)?$'
+        ],
+        'Coub': [
+            # Стандартные видео
+            r'^https?://(?:www\.)?coub\.com/view/[\w\.-]+(?:\?\S*)?$',
+            # Embed
+            r'^https?://(?:www\.)?coub\.com/embed/[\w\.-]+(?:\?\S*)?$',
+            # Короткие ссылки
+            r'^https?://coub\.com/[\w\.-]+/?(?:\?\S*)?$'
         ]
     }
+    
+    @classmethod
+    def load_patterns_from_config(cls) -> bool:
+        """
+        Загружает паттерны URL из файла конфигурации.
+        Возвращает True в случае успешной загрузки, иначе False.
+        """
+        try:
+            if os.path.exists(cls.CONFIG_FILE):
+                with open(cls.CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    patterns = json.load(f)
+                    # Обновляем только существующие сервисы, новые не добавляем
+                    for service, service_patterns in patterns.items():
+                        if service in cls.URL_PATTERNS:
+                            # Добавляем только новые паттерны
+                            existing_patterns = set(cls.URL_PATTERNS[service])
+                            for pattern in service_patterns:
+                                if pattern not in existing_patterns:
+                                    cls.URL_PATTERNS[service].append(pattern)
+                    logger.info("Паттерны URL успешно загружены из конфигурации")
+                    return True
+            else:
+                # Создаем файл конфигурации при первом запуске
+                logger.info(f"Файл конфигурации URL-паттернов не найден, создаем новый: {cls.CONFIG_FILE}")
+                cls.save_patterns_to_config()
+            return False
+        except Exception as e:
+            logger.error(f"Ошибка загрузки паттернов URL из конфигурации: {e}")
+            return False
+    
+    @classmethod
+    def save_patterns_to_config(cls) -> bool:
+        """
+        Сохраняет текущие паттерны URL в файл конфигурации.
+        Возвращает True в случае успешного сохранения, иначе False.
+        """
+        try:
+            with open(cls.CONFIG_FILE, 'w', encoding='utf-8') as f:
+                json.dump(cls.URL_PATTERNS, f, ensure_ascii=False, indent=4)
+            logger.info("Паттерны URL успешно сохранены в конфигурацию")
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка сохранения паттернов URL в конфигурацию: {e}")
+            return False
+    
+    @classmethod
+    def register_url_pattern(cls, service: str, pattern: str) -> bool:
+        """
+        Регистрирует новый паттерн URL для указанного сервиса.
+        Возвращает True в случае успешной регистрации, иначе False.
+        """
+        try:
+            if service in cls.URL_PATTERNS:
+                if pattern not in cls.URL_PATTERNS[service]:
+                    # Проверяем валидность регулярного выражения
+                    re.compile(pattern)
+                    cls.URL_PATTERNS[service].append(pattern)
+                    logger.info(f"Добавлен новый паттерн для {service}: {pattern}")
+                    cls.save_patterns_to_config()
+                    return True
+            else:
+                logger.warning(f"Невозможно добавить паттерн для неизвестного сервиса: {service}")
+            return False
+        except Exception as e:
+            logger.error(f"Ошибка при добавлении паттерна URL: {e}")
+            return False
 
     @classmethod
     def get_service_name(cls, url: str) -> str:
         """Определяет название видеосервиса по URL."""
         if not url:
             return 'Неизвестный сервис'
+        
+        # Пытаемся загрузить актуальные паттерны при первом запросе
+        if not hasattr(cls, '_patterns_loaded'):
+            cls.load_patterns_from_config()
+            cls._patterns_loaded = True
             
         for service, patterns in cls.URL_PATTERNS.items():
             for pattern in patterns:
-                if re.match(pattern, url):
-                    return service
+                try:
+                    if re.match(pattern, url):
+                        return service
+                except re.error:
+                    logger.warning(f"Ошибка в регулярном выражении для {service}: {pattern}")
+                    continue
                     
         # Проверка по доменам, если точное совпадение не найдено
-        if 'youtube.com' in url or 'youtu.be' in url:
-            return 'YouTube'
-        elif 'vk.com' in url or 'vkvideo.ru' in url:
-            return 'VK'
-        elif 'rutube.ru' in url:
-            return 'RuTube'
-        elif 'ok.ru' in url:
-            return 'Одноклассники'
-        elif 'mail.ru' in url:
-            return 'Mail.ru'
+        domain_map = {
+            'youtube.com': 'YouTube',
+            'youtu.be': 'YouTube',
+            'music.youtube.com': 'YouTube',
+            'vk.com': 'VK',
+            'vkvideo.ru': 'VK',
+            'rutube.ru': 'RuTube',
+            'ok.ru': 'Одноклассники',
+            'mail.ru': 'Mail.ru',
+            'my.mail.ru': 'Mail.ru',
+            'bilibili.com': 'Bilibili',
+            'b23.tv': 'Bilibili',
+            'tiktok.com': 'TikTok',
+            'vm.tiktok.com': 'TikTok',
+            'vt.tiktok.com': 'TikTok',
+            'twitch.tv': 'Twitch',
+            'clips.twitch.tv': 'Twitch',
+            'vimeo.com': 'Vimeo',
+            'player.vimeo.com': 'Vimeo',
+            'facebook.com': 'Facebook',
+            'fb.watch': 'Facebook',
+            'instagram.com': 'Instagram',
+            't.me': 'Telegram',
+            'dailymotion.com': 'Dailymotion',
+            'coub.com': 'Coub'
+        }
+        
+        for domain, service in domain_map.items():
+            if domain in url:
+                # Если домен найден, но формат не соответствует паттернам, 
+                # логируем его для возможного добавления в будущем
+                cls.log_unknown_url_format(service, url)
+                return service
             
         return 'Неизвестный сервис'
+
+    @classmethod
+    def log_unknown_url_format(cls, service: str, url: str) -> None:
+        """
+        Логирует неизвестный формат URL для возможного обновления паттернов.
+        """
+        try:
+            log_file = f"unknown_{service.lower()}_urls.log"
+            with open(log_file, 'a', encoding='utf-8') as f:
+                f.write(f"{datetime.now()} - {url}\n")
+            logger.warning(f"Обнаружен нераспознанный формат URL для {service}: {url}")
+        except Exception as e:
+            logger.error(f"Ошибка при логировании неизвестного формата URL: {e}")
 
     @classmethod
     def is_valid(cls, url: str) -> Tuple[bool, str]:
@@ -128,22 +412,91 @@ class VideoURL:
                 raise URLValidationError("URL не может быть пустым")
 
             if not url.startswith(('http://', 'https://')):
-                raise URLValidationError("URL должен начинаться с http:// или https://")
+                # Пытаемся исправить URL автоматически
+                if '://' not in url:
+                    fixed_url = f"https://{url}"
+                    logger.info(f"Автоматическое исправление URL: {url} -> {fixed_url}")
+                    return cls.is_valid(fixed_url)
+                else:
+                    raise URLValidationError("URL должен начинаться с http:// или https://")
 
             for service, patterns in cls.URL_PATTERNS.items():
                 for pattern in patterns:
-                    if re.match(pattern, url):
-                        logger.info(f"URL валиден для сервиса {service}: {url}")
-                        return True, ""
+                    try:
+                        if re.match(pattern, url):
+                            logger.info(f"URL валиден для сервиса {service}: {url}")
+                            return True, ""
+                    except re.error:
+                        logger.warning(f"Ошибка в регулярном выражении для {service}: {pattern}")
+                        continue
 
             # Если URL содержит домен известного сервиса, но не соответствует паттерну
             service = cls.get_service_name(url)
             if service != 'Неизвестный сервис':
-                raise URLValidationError(f"Неверный формат URL для {service}. Проверьте правильность ссылки.")
+                raise URLValidationError(
+                    f"Неверный формат URL для {service}. Проверьте правильность ссылки или сообщите разработчику о новом формате."
+                )
 
             return False, "Неподдерживаемый видеосервис или неверный формат URL"
         except URLValidationError as e:
             return False, str(e)
+        except Exception as e:
+            logger.exception(f"Неожиданная ошибка при проверке URL: {url}")
+            return False, f"Ошибка при проверке URL: {str(e)}"
+
+    @staticmethod
+    def test_url(url: str) -> Dict[str, Any]:
+        """
+        Тестирует URL и возвращает подробную информацию о нем.
+        Полезно для диагностики и отладки.
+        """
+        result = {
+            "url": url,
+            "is_valid": False,
+            "error_message": "",
+            "service": "Неизвестный сервис",
+            "matched_pattern": None,
+            "suggested_pattern": None
+        }
+        
+        try:
+            if not url:
+                result["error_message"] = "URL не может быть пустым"
+                return result
+                
+            if not url.startswith(('http://', 'https://')):
+                result["error_message"] = "URL должен начинаться с http:// или https://"
+                return result
+                
+            service = VideoURL.get_service_name(url)
+            result["service"] = service
+            
+            # Проверяем соответствие паттернам
+            for pattern in VideoURL.URL_PATTERNS.get(service, []):
+                try:
+                    if re.match(pattern, url):
+                        result["is_valid"] = True
+                        result["matched_pattern"] = pattern
+                        break
+                except re.error:
+                    continue
+            
+            # Если не соответствует, пытаемся предложить паттерн
+            if not result["is_valid"] and service != "Неизвестный сервис":
+                # Создаем упрощенный паттерн на основе URL
+                domain_part = url.split('//')[1].split('/')[0]
+                path_parts = url.split(domain_part)[1]
+                suggested_pattern = f"^https?://(?:www\\.)?{domain_part.replace('.', '\\.')}\\S*$"
+                result["suggested_pattern"] = suggested_pattern
+                result["error_message"] = f"URL не соответствует известным паттернам для {service}"
+            
+            if not result["is_valid"] and not result["error_message"]:
+                result["error_message"] = "Неподдерживаемый видеосервис или неверный формат URL"
+                
+        except Exception as e:
+            result["error_message"] = f"Ошибка при тестировании URL: {str(e)}"
+            
+        return result
 
 class DownloadMode(Enum):
     VIDEO = "video"
@@ -551,8 +904,10 @@ class DownloadManager:
             for filename, url in self.successful_downloads:
                 # Определяем правильное расширение на основе имени файла
                 if '_audio' in filename:
-                    # Для аудио всегда будет mp3
-                    display_filename = filename.replace('.webm', '.mp3').replace('.m4a', '.mp3')
+                    # Для аудио всегда будет mp3 (FFmpeg конвертирует в mp3)
+                    # Заменяем любое расширение на .mp3
+                    base_name = os.path.splitext(filename)[0]
+                    display_filename = f"{base_name}.mp3"
                 else:
                     # Для видео всегда будет mp4
                     display_filename = filename.replace('.webm', '.mp4').replace('.mkv', '.mp4')
@@ -583,7 +938,10 @@ class VideoDownloaderUI(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Video Downloader")
-        self.setMinimumSize(950, 600)
+        self.setMinimumSize(970, 600)
+        
+        # Загрузка паттернов URL
+        VideoURL.load_patterns_from_config()
         
         # Установка иконки приложения
         self.setup_app_icon()
@@ -610,7 +968,7 @@ class VideoDownloaderUI(QMainWindow):
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: #2196F3; padding: 5px; margin: 5px 0 10px 0;")
 
-        subtitle_label: QLabel = QLabel("Скачивай видео с YouTube, VK, Rutube, Mail.ru, OK")
+        subtitle_label: QLabel = QLabel("Скачивай видео с YouTube, VK, TikTok, Instagram и других сервисов")
         subtitle_label.setFont(QFont("Arial", 12))
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle_label.setStyleSheet("color: #666666; padding: 5px; margin: 0 0 10px 0;")
@@ -834,6 +1192,35 @@ class VideoDownloaderUI(QMainWindow):
         is_valid, error_message = VideoURL.is_valid(url)
         if not is_valid:
             logger.warning(f"Попытка вставить некорректный URL: {url}. Причина: {error_message}")
+            
+            # Если это неизвестный формат известного сервиса, предложим сообщить о нем
+            test_info = VideoURL.test_url(url)
+            if test_info["service"] != "Неизвестный сервис" and test_info["suggested_pattern"]:
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setWindowTitle("Неизвестный формат URL")
+                msg.setText(f"Обнаружен неизвестный формат URL для сервиса {test_info['service']}.")
+                msg.setInformativeText("Хотите попробовать использовать этот URL несмотря на ошибку?\n\n"
+                                       "URL будет записан в лог для возможного добавления в будущие версии.")
+                msg.setDetailedText(f"URL: {url}\n"
+                                   f"Сервис: {test_info['service']}\n"
+                                   f"Предлагаемый паттерн: {test_info['suggested_pattern']}")
+                msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                msg.setDefaultButton(QMessageBox.StandardButton.No)
+                
+                if msg.exec() == QMessageBox.StandardButton.Yes:
+                    # Принудительно принимаем URL и продолжаем
+                    self.url_input.setText(url)
+                    logger.info(f"Пользователь выбрал продолжить с неподдерживаемым URL: {url}")
+                    
+                    # Логируем для будущего анализа
+                    VideoURL.log_unknown_url_format(test_info["service"], url)
+                    
+                    if self.video_radio.isChecked():
+                        self.update_resolutions()
+                    
+                    return
+            
             QMessageBox.warning(self, "Ошибка", error_message)
             return
 
@@ -988,7 +1375,7 @@ class VideoDownloaderUI(QMainWindow):
         if success:
             about_text = (
                 f"<div style='text-align: center;'><img src='{image_path}' width='120' height='120'/></div>"
-                "<h2 style='text-align: center;'>Video Downloader by MaksK v1.07</h2>"
+                "<h2 style='text-align: center;'>Video Downloader by MaksK v1.08</h2>"
                 "<p>Приложение для скачивания видео и аудио с различных видеохостингов:</p>"
                 "<ul>"
                 "<li>YouTube</li>"
@@ -996,6 +1383,14 @@ class VideoDownloaderUI(QMainWindow):
                 "<li>RuTube</li>"
                 "<li>Одноклассники</li>"
                 "<li>Mail.ru</li>"
+                "<li>TikTok</li>"
+                "<li>Instagram/Facebook</li>"
+                "<li>Twitch</li>"
+                "<li>Vimeo</li>"
+                "<li>Telegram</li>"
+                "<li>Dailymotion</li>"
+                "<li>Coub</li>"
+                "<li>Bilibili</li>"
                 "</ul>"
                 "<p><b>Сайт программы:</b> <a href='https://maks-mk.github.io/'>https://maks-mk.github.io/</a></p>"
                 "<p><b>Разработчик:</b> <a href='mailto:maks_k77@mail.ru'>maks_k77@mail.ru</a></p>"
@@ -1005,7 +1400,7 @@ class VideoDownloaderUI(QMainWindow):
         else:
             about_text = (
                 "<div style='text-align: center;'><span style='font-size: 80px; color: red;'>!</span></div>"
-                "<h2 style='text-align: center;'>Video Downloader v1.07</h2>"
+                "<h2 style='text-align: center;'>Video Downloader v1.08</h2>"
                 "<p>Приложение для скачивания видео и аудио с различных видеохостингов:</p>"
                 "<ul>"
                 "<li>YouTube</li>"
@@ -1013,6 +1408,14 @@ class VideoDownloaderUI(QMainWindow):
                 "<li>RuTube</li>"
                 "<li>Одноклассники</li>"
                 "<li>Mail.ru</li>"
+                "<li>TikTok</li>"
+                "<li>Instagram/Facebook</li>"
+                "<li>Twitch</li>"
+                "<li>Vimeo</li>"
+                "<li>Telegram</li>"
+                "<li>Dailymotion</li>"
+                "<li>Coub</li>"
+                "<li>Bilibili</li>"
                 "</ul>"
                 "<p><b>Сайт программы:</b> <a href='https://maks-mk.github.io/'>https://maks-mk.github.io/</a></p>"
                 "<p><b>Разработчик:</b> <a href='mailto:maks_k77@mail.ru'>maks_k77@mail.ru</a></p>"
@@ -1024,12 +1427,88 @@ class VideoDownloaderUI(QMainWindow):
         msg_box.setWindowTitle("О программе")
         msg_box.setTextFormat(Qt.TextFormat.RichText)
         msg_box.setText(about_text)
-        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        
+        # Добавляем кнопку для отправки сообщения о неизвестных форматах URL
+        report_btn = QPushButton("Сообщить о новом формате URL")
+        report_btn.clicked.connect(self.show_url_report_dialog)
+        
+        msg_box.addButton(QMessageBox.StandardButton.Ok)
+        msg_box.addButton(report_btn, QMessageBox.ButtonRole.ActionRole)
         
         if not success:
             msg_box.setIcon(QMessageBox.Icon.Information)
         
         msg_box.exec()
+        
+    def show_url_report_dialog(self) -> None:
+        """Показывает диалог для отправки сообщения о неизвестном формате URL."""
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Сообщить о новом формате URL")
+        dialog.setIcon(QMessageBox.Icon.Information)
+        dialog.setText("Если вы обнаружили URL видео, который не распознается программой, "
+                      "вы можете отправить его разработчику для добавления поддержки.")
+                      
+        # Проверяем наличие логов с неизвестными URL
+        unknown_logs = []
+        for service in VideoURL.URL_PATTERNS.keys():
+            log_file = f"unknown_{service.lower()}_urls.log"
+            if os.path.exists(log_file):
+                unknown_logs.append(log_file)
+                
+        if unknown_logs:
+            log_text = "Найдены записи о неизвестных форматах URL:\n\n"
+            for log_file in unknown_logs:
+                try:
+                    with open(log_file, 'r', encoding='utf-8') as f:
+                        urls = f.readlines()
+                        if urls:
+                            log_text += f"{log_file}: {len(urls)} записей\n"
+                except Exception as e:
+                    logger.error(f"Ошибка при чтении лога неизвестных URL: {e}")
+            
+            dialog.setInformativeText(log_text + "\n\nХотите отправить эти данные разработчику?")
+            dialog.setDetailedText("Нажмите 'Отправить', чтобы скопировать логи в буфер обмена и открыть "
+                                  "почтовый клиент. Вы можете вставить данные в письмо и отправить его разработчику.")
+                                  
+            send_btn = dialog.addButton("Отправить", QMessageBox.ButtonRole.AcceptRole)
+            dialog.addButton(QMessageBox.StandardButton.Cancel)
+            
+            if dialog.exec() == 0:  # Нажата кнопка "Отправить"
+                # Подготавливаем текст для отправки
+                email_text = "Здравствуйте!\n\nЯ обнаружил следующие неподдерживаемые URL в Video Downloader:\n\n"
+                
+                for log_file in unknown_logs:
+                    try:
+                        with open(log_file, 'r', encoding='utf-8') as f:
+                            urls = f.readlines()
+                            if urls:
+                                email_text += f"=== {log_file} ===\n"
+                                for url in urls[-10:]:  # Берем только последние 10 записей
+                                    email_text += url
+                                email_text += "\n"
+                    except Exception as e:
+                        logger.error(f"Ошибка при чтении лога неизвестных URL: {e}")
+                
+                # Копируем в буфер обмена
+                clipboard = QApplication.clipboard()
+                clipboard.setText(email_text)
+                
+                # Пытаемся открыть почтовый клиент
+                try:
+                    import webbrowser
+                    webbrowser.open("mailto:maks_k77@mail.ru?subject=Video%20Downloader%20-%20New%20URL%20Format")
+                    QMessageBox.information(self, "Отправка отчета", 
+                                          "Текст отчета скопирован в буфер обмена. Вставьте его в письмо.")
+                except Exception as e:
+                    logger.error(f"Ошибка при открытии почтового клиента: {e}")
+                    QMessageBox.information(self, "Отправка отчета", 
+                                          "Текст отчета скопирован в буфер обмена. Отправьте его на адрес: maks_k77@mail.ru")
+        else:
+            dialog.setInformativeText("Не найдено записей о неизвестных форматах URL.\n\n"
+                                      "Если вы хотите сообщить о новом формате, скопируйте URL и отправьте его "
+                                      "разработчику на адрес: maks_k77@mail.ru")
+            dialog.addButton(QMessageBox.StandardButton.Ok)
+            dialog.exec()
 
     def set_controls_enabled(self, enabled: bool) -> None:
         """
@@ -1098,73 +1577,3 @@ if __name__ == '__main__':
     window = VideoDownloaderUI()
     window.show()
     sys.exit(app.exec())
-
-class DownloadQueue:
-    def __init__(self):
-        self.queue: List[Dict[str, Any]] = []
-        self.executor = ThreadPoolExecutor(max_workers=3)
-        
-    async def process_queue(self):
-        while self.queue:
-            download = self.queue[0]
-            try:
-                await self.process_download(download)
-            except Exception as e:
-                logger.exception(f"Error processing download: {e}")
-            self.queue.pop(0)
-            
-    async def process_download(self, download: Dict[str, Any]):
-        # Асинхронная обработка загрузки
-        pass
-
-class ResolutionCache:
-    def __init__(self, ttl: int = 3600):  # TTL в секундах
-        self.cache: Dict[str, Tuple[List[str], float]] = {}
-        self.ttl = ttl
-        
-    def get(self, url: str) -> Optional[List[str]]:
-        if url in self.cache:
-            resolutions, timestamp = self.cache[url]
-            if time.time() - timestamp < self.ttl:
-                return resolutions
-            del self.cache[url]
-        return None
-        
-    def set(self, url: str, resolutions: List[str]) -> None:
-        self.cache[url] = (resolutions, time.time())
-
-class VideoServicePlugin(ABC):
-    @abstractmethod
-    def can_handle(self, url: str) -> bool:
-        pass
-        
-    @abstractmethod
-    def get_video_info(self, url: str) -> Dict[str, Any]:
-        pass
-        
-    @abstractmethod
-    def download(self, url: str, options: Dict[str, Any]) -> bool:
-        pass
-
-class YouTubePlugin(VideoServicePlugin):
-    def can_handle(self, url: str) -> bool:
-        return 'youtube.com' in url or 'youtu.be' in url
-    
-    # Реализация остальных методов
-
-class DownloadMetrics:
-    def __init__(self):
-        self.total_downloads: int = 0
-        self.successful_downloads: int = 0
-        self.failed_downloads: int = 0
-        self.total_bytes_downloaded: int = 0
-        self.average_speed: float = 0.0
-        
-    def update_metrics(self, success: bool, bytes_downloaded: int, speed: float) -> None:
-        self.total_downloads += 1
-        if success:
-            self.successful_downloads += 1
-        else:
-            self.failed_downloads += 1
-        self.total_bytes_downloaded += bytes_downloaded
-        self.average_speed = (self.average_speed + speed) / 2
