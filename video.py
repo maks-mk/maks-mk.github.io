@@ -4,7 +4,7 @@ import json
 import re
 import logging
 from datetime import datetime
-from typing import Tuple, List, Dict, Any, Optional, Set
+from typing import Tuple, List, Dict, Any, Optional, Set, Union
 import subprocess
 import shutil
 import threading
@@ -15,6 +15,8 @@ from functools import lru_cache
 import time
 from abc import ABC, abstractmethod
 from logging.handlers import RotatingFileHandler
+import hashlib
+from collections import OrderedDict
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QLabel, QLineEdit, QPushButton,
@@ -22,6 +24,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QRadioButton, QButtonGroup, QMessageBox, QStyle)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QRunnable, QThreadPool
 from PyQt6.QtGui import QIcon, QFont, QKeySequence, QShortcut, QPixmap, QCursor
+from PyQt6.QtCore import QEventLoop
 import yt_dlp
 
 # Настройка логирования
@@ -265,6 +268,31 @@ class VideoURL:
         ]
     }
     
+    # Объединенные регулярные выражения для быстрой проверки
+    _combined_patterns = {}
+    _compiled_patterns = {}
+    
+    @classmethod
+    def _init_combined_patterns(cls):
+        """Инициализирует объединенные регулярные выражения для быстрой проверки."""
+        if not cls._combined_patterns:
+            for service, patterns in cls.URL_PATTERNS.items():
+                # Объединяем все паттерны для сервиса через '|'
+                combined = '|'.join(f'(?:{pattern})' for pattern in patterns)
+                cls._combined_patterns[service] = combined
+                try:
+                    cls._compiled_patterns[service] = re.compile(combined)
+                    logger.info(f"Скомпилирован объединенный паттерн для {service}")
+                except re.error:
+                    logger.warning(f"Ошибка при компиляции объединенного паттерна для {service}")
+                    # Если не удалось скомпилировать объединенный паттерн,
+                    # компилируем отдельные паттерны
+                    cls._compiled_patterns[service] = [
+                        (pattern, re.compile(pattern)) 
+                        for pattern in patterns
+                    ]
+            logger.info("Объединенные регулярные выражения инициализированы")
+    
     @classmethod
     def load_patterns_from_config(cls) -> bool:
         """
@@ -337,19 +365,25 @@ class VideoURL:
         if not url:
             return 'Неизвестный сервис'
         
-        # Пытаемся загрузить актуальные паттерны при первом запросе
+        # Загружаем паттерны при первом запросе
         if not hasattr(cls, '_patterns_loaded'):
             cls.load_patterns_from_config()
+            cls._init_combined_patterns()
             cls._patterns_loaded = True
             
-        for service, patterns in cls.URL_PATTERNS.items():
-            for pattern in patterns:
-                try:
-                    if re.match(pattern, url):
+        # Проверяем по объединенным паттернам для ускорения
+        for service, compiled_pattern in cls._compiled_patterns.items():
+            try:
+                if isinstance(compiled_pattern, re.Pattern):
+                    if compiled_pattern.match(url):
                         return service
-                except re.error:
-                    logger.warning(f"Ошибка в регулярном выражении для {service}: {pattern}")
-                    continue
+                else:
+                    # Если используются отдельные скомпилированные паттерны
+                    for _, pattern_re in compiled_pattern:
+                        if pattern_re.match(url):
+                            return service
+            except Exception as e:
+                logger.warning(f"Ошибка при проверке URL для {service}: {e}")
                     
         # Проверка по доменам, если точное совпадение не найдено
         domain_map = {
@@ -420,15 +454,27 @@ class VideoURL:
                 else:
                     raise URLValidationError("URL должен начинаться с http:// или https://")
 
-            for service, patterns in cls.URL_PATTERNS.items():
-                for pattern in patterns:
-                    try:
-                        if re.match(pattern, url):
+            # Инициализируем объединенные паттерны при необходимости
+            if not hasattr(cls, '_patterns_loaded'):
+                cls.load_patterns_from_config()
+                cls._init_combined_patterns()
+                cls._patterns_loaded = True
+                
+            # Проверяем по объединенным паттернам для ускорения
+            for service, compiled_pattern in cls._compiled_patterns.items():
+                try:
+                    if isinstance(compiled_pattern, re.Pattern):
+                        if compiled_pattern.match(url):
                             logger.info(f"URL валиден для сервиса {service}: {url}")
                             return True, ""
-                    except re.error:
-                        logger.warning(f"Ошибка в регулярном выражении для {service}: {pattern}")
-                        continue
+                    else:
+                        # Если используются отдельные скомпилированные паттерны
+                        for pattern, pattern_re in compiled_pattern:
+                            if pattern_re.match(url):
+                                logger.info(f"URL валиден для сервиса {service}: {url}")
+                                return True, ""
+                except Exception as e:
+                    logger.warning(f"Ошибка при проверке URL для {service}: {e}")
 
             # Если URL содержит домен известного сервиса, но не соответствует паттерну
             service = cls.get_service_name(url)
@@ -513,21 +559,20 @@ class ResolutionWorker(QThread):
     def run(self) -> None:
         try:
             logger.info(f"Получение доступных разрешений для: {self.url}")
-            ydl_opts: Dict[str, Any] = {'quiet': True, 'no_warnings': True}
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info: Dict[str, Any] = ydl.extract_info(self.url, download=False)
-                formats: List[Dict[str, Any]] = info.get('formats', [])
-                # Собираем разрешения из доступных форматов
-                resolutions: Set[str] = {f"{fmt['height']}p" for fmt in formats
-                                          if fmt.get('height') and fmt.get('vcodec') != 'none'}
-                if not resolutions:
-                    resolutions = {'720p'}
-                # Сортировка разрешений по убыванию
-                sorted_resolutions: List[str] = sorted(list(resolutions),
-                                                       key=lambda x: int(x.replace('p', '')),
-                                                       reverse=True)
-            logger.info(f"Найдены разрешения: {sorted_resolutions}")
-            self.resolutions_found.emit(sorted_resolutions)
+            
+            # Создаем новый event loop для асинхронных операций
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Получаем разрешения асинхронно
+            resolutions = loop.run_until_complete(
+                video_info_fetcher.get_video_resolutions(self.url)
+            )
+            
+            # Закрываем loop
+            loop.close()
+            
+            self.resolutions_found.emit(resolutions)
         except Exception as e:
             logger.exception(f"Ошибка при получении разрешений: {self.url}")
             user_friendly_error = "Не удалось получить доступные разрешения. Проверьте URL и подключение к интернету."
@@ -934,14 +979,22 @@ class DownloadManager:
         except Exception as e:
             logger.error(f"Ошибка при очистке временных файлов: {e}")
 
+    def reset_download_history(self) -> None:
+        """Сбрасывает историю загрузок."""
+        self.successful_downloads.clear()
+        self.failed_downloads.clear()
+        logger.info("История загрузок сброшена")
+
 class VideoDownloaderUI(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Video Downloader")
         self.setMinimumSize(970, 600)
         
-        # Загрузка паттернов URL
+        # Загрузка паттернов URL и инициализация кэша
         VideoURL.load_patterns_from_config()
+        VideoURL._init_combined_patterns()
+        video_info_cache.load_from_file()
         
         # Установка иконки приложения
         self.setup_app_icon()
@@ -1016,11 +1069,11 @@ class VideoDownloaderUI(QMainWindow):
         add_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogNewFolder))
         cancel_button: QPushButton = QPushButton("Отменить")
         cancel_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogCancelButton))
-        start_button: QPushButton = QPushButton("Загрузить все (Ctrl+S)")
-        start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
+        self.start_button: QPushButton = QPushButton("Загрузить все (Ctrl+S)")
+        self.start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
         buttons_layout.addWidget(add_button)
         buttons_layout.addWidget(cancel_button)
-        buttons_layout.addWidget(start_button)
+        buttons_layout.addWidget(self.start_button)
 
         # Кнопки управления очередью (размещаем только в правой панели)
         queue_buttons_layout: QHBoxLayout = QHBoxLayout()
@@ -1129,7 +1182,7 @@ class VideoDownloaderUI(QMainWindow):
         add_button.clicked.connect(self.add_to_queue)
         cancel_button.clicked.connect(self.cancel_download)
         refresh_button.clicked.connect(self.update_resolutions)
-        start_button.clicked.connect(self.start_downloads)
+        self.start_button.clicked.connect(self.start_downloads)
         self.video_radio.toggled.connect(self.on_mode_changed)
 
         # Горячие клавиши
@@ -1233,11 +1286,44 @@ class VideoDownloaderUI(QMainWindow):
     def update_resolutions(self) -> None:
         """
         Получает доступные разрешения в отдельном потоке для повышения отзывчивости UI.
+        Использует кэш, если информация уже была запрошена ранее.
         """
         url: str = self.url_input.text().strip()
         if not url or not url.startswith(('http://', 'https://')):
             return
 
+        # Проверяем, есть ли информация в кэше
+        cached_info = video_info_cache.get(url)
+        if cached_info and 'formats' in cached_info:
+            # Извлекаем разрешения из кэша
+            formats = cached_info.get('formats', [])
+            resolutions = {f"{fmt['height']}p" for fmt in formats
+                          if fmt.get('height') and fmt.get('vcodec') != 'none'}
+            
+            if not resolutions:
+                resolutions = {'720p'}
+                
+            # Сортировка разрешений по убыванию
+            sorted_resolutions = sorted(list(resolutions),
+                                       key=lambda x: int(x.replace('p', '')),
+                                       reverse=True)
+            
+            # Обновляем UI
+            self.resolution_combo.clear()
+            self.resolution_combo.addItems(sorted_resolutions)
+            self.resolution_combo.setEnabled(True)
+            self.status_label.setText("Разрешения получены из кэша")
+            self.status_label.setStyleSheet("color: green;")
+            
+            # Если сохранённое разрешение присутствует в списке, устанавливаем его
+            last_resolution = self.settings.get("last_resolution")
+            if last_resolution in sorted_resolutions:
+                index = sorted_resolutions.index(last_resolution)
+                self.resolution_combo.setCurrentIndex(index)
+                
+            return
+
+        # Если нет в кэше, показываем индикатор загрузки
         self.resolution_combo.clear()
         self.resolution_combo.addItem("Получение разрешений...")
         self.resolution_combo.setEnabled(False)
@@ -1245,6 +1331,7 @@ class VideoDownloaderUI(QMainWindow):
         self.status_label.setStyleSheet("color: #2196F3;")
         QApplication.processEvents()
 
+        # Запускаем асинхронное получение разрешений
         self.resolution_worker = ResolutionWorker(url)
         self.resolution_worker.resolutions_found.connect(self.on_resolutions_found)
         self.resolution_worker.error_occurred.connect(self.on_resolutions_error)
@@ -1301,6 +1388,7 @@ class VideoDownloaderUI(QMainWindow):
             return
 
         self.set_controls_enabled(False)
+        self.start_button.setEnabled(False)  # Дополнительно деактивируем кнопку "Загрузить все"
         download_runnable = self.download_manager.process_queue()
         if download_runnable:
             download_runnable.signals.progress.connect(self.update_progress)
@@ -1329,6 +1417,8 @@ class VideoDownloaderUI(QMainWindow):
         if not self.download_manager.download_queue:
             self.show_download_summary()
             self.set_controls_enabled(True)
+            self.start_button.setEnabled(True)  # Включаем кнопку "Загрузить все"
+            self.reset_ui_after_downloads()  # Сбрасываем UI после загрузок
         else:
             self.start_downloads()
 
@@ -1336,7 +1426,41 @@ class VideoDownloaderUI(QMainWindow):
         summary = self.download_manager.get_download_summary()
         if summary:
             self.download_manager.cleanup_temp_files()
-            QMessageBox.information(self, "Загрузка завершена", summary)
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Загрузка завершена")
+            msg_box.setText(summary)
+            
+            # Добавляем кнопку для сброса истории загрузок
+            clear_history_btn = QPushButton("Очистить историю")
+            clear_history_btn.clicked.connect(self.clear_download_history)
+            
+            msg_box.addButton(QMessageBox.StandardButton.Ok)
+            msg_box.addButton(clear_history_btn, QMessageBox.ButtonRole.ActionRole)
+            
+            msg_box.exec()
+
+    def reset_ui_after_downloads(self) -> None:
+        """Сбрасывает UI после завершения загрузок."""
+        # Очищаем поле URL
+        self.url_input.clear()
+        
+        # Сбрасываем прогресс
+        self.progress_bar.setValue(0)
+        
+        # Обновляем статус
+        self.status_label.setText("Загрузки завершены. Готов к новым задачам.")
+        self.status_label.setStyleSheet("color: green;")
+        
+        # Обновляем очередь загрузок
+        self.update_queue_display()
+        
+        logger.info("UI сброшен после загрузок")
+
+    def clear_download_history(self) -> None:
+        """Очищает историю загрузок."""
+        self.download_manager.reset_download_history()
+        QMessageBox.information(self, "История очищена", 
+                             "История загрузок успешно очищена.")
 
     def cancel_download(self) -> None:
         self.download_manager.cancel_current_download()
@@ -1432,8 +1556,13 @@ class VideoDownloaderUI(QMainWindow):
         report_btn = QPushButton("Сообщить о новом формате URL")
         report_btn.clicked.connect(self.show_url_report_dialog)
         
+        # Добавляем кнопку для очистки кэша
+        clear_cache_btn = QPushButton("Очистить кэш видео")
+        clear_cache_btn.clicked.connect(self.clear_cache)
+        
         msg_box.addButton(QMessageBox.StandardButton.Ok)
         msg_box.addButton(report_btn, QMessageBox.ButtonRole.ActionRole)
+        msg_box.addButton(clear_cache_btn, QMessageBox.ButtonRole.ActionRole)
         
         if not success:
             msg_box.setIcon(QMessageBox.Icon.Information)
@@ -1518,6 +1647,7 @@ class VideoDownloaderUI(QMainWindow):
         self.video_radio.setEnabled(enabled)
         self.audio_radio.setEnabled(enabled)
         self.resolution_combo.setEnabled(enabled)
+        # Кнопка "Загрузить все" управляется отдельно для более точного контроля
 
     def on_mode_changed(self) -> None:
         is_video: bool = self.video_radio.isChecked()
@@ -1526,6 +1656,19 @@ class VideoDownloaderUI(QMainWindow):
             widget = self.resolution_layout.itemAt(i).widget()
             if widget:
                 widget.setVisible(is_video)
+
+    def closeEvent(self, event):
+        """Обработчик закрытия приложения."""
+        # Сохраняем кэш при выходе
+        video_info_cache.save_to_file()
+        event.accept()
+
+    def clear_cache(self) -> None:
+        """Очищает кэш информации о видео."""
+        video_info_cache.clear()
+        video_info_cache.save_to_file()
+        QMessageBox.information(self, "Кэш очищен", 
+                             "Кэш информации о видео успешно очищен.")
 
 # Проверка наличия необходимых компонентов
 def check_ffmpeg() -> bool:
@@ -1551,6 +1694,178 @@ def show_error_message(title: str, message: str) -> None:
     box.exec()
     sys.exit(1)
 
+# Класс для кэширования информации о видео
+class VideoInfoCache:
+    """Класс для кэширования информации о видео."""
+    
+    def __init__(self, max_size: int = 100):
+        self.max_size = max_size
+        self.cache: OrderedDict = OrderedDict()
+        
+    def get(self, url: str) -> Optional[Dict[str, Any]]:
+        """Получает информацию о видео из кэша."""
+        key = self._get_key(url)
+        if key in self.cache:
+            # Перемещаем элемент в конец OrderedDict, чтобы сохранить LRU-порядок
+            value = self.cache.pop(key)
+            self.cache[key] = value
+            logger.info(f"Информация о видео получена из кэша: {url}")
+            return value
+        return None
+        
+    def set(self, url: str, info: Dict[str, Any]) -> None:
+        """Добавляет информацию о видео в кэш."""
+        key = self._get_key(url)
+        
+        # Если кэш полон, удаляем самый старый элемент (первый в OrderedDict)
+        if len(self.cache) >= self.max_size:
+            self.cache.popitem(last=False)
+            
+        self.cache[key] = info
+        logger.info(f"Информация о видео добавлена в кэш: {url}")
+        
+    def clear(self) -> None:
+        """Очищает кэш."""
+        self.cache.clear()
+        logger.info("Кэш информации о видео очищен")
+        
+    def _get_key(self, url: str) -> str:
+        """Генерирует ключ для кэша на основе URL."""
+        return hashlib.md5(url.encode()).hexdigest()
+        
+    def save_to_file(self, filename: str = 'video_cache.json') -> bool:
+        """Сохраняет кэш в файл."""
+        try:
+            # Преобразуем OrderedDict в обычный словарь для сериализации
+            cache_data = {k: v for k, v in self.cache.items()}
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f)
+            logger.info(f"Кэш успешно сохранен в файл: {filename}")
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка при сохранении кэша в файл: {e}")
+            return False
+            
+    def load_from_file(self, filename: str = 'video_cache.json') -> bool:
+        """Загружает кэш из файла."""
+        try:
+            if os.path.exists(filename):
+                with open(filename, 'r', encoding='utf-8') as f:
+                    cache_data = json.load(f)
+                    # Преобразуем обычный словарь в OrderedDict
+                    self.cache = OrderedDict(cache_data)
+                logger.info(f"Кэш успешно загружен из файла: {filename}")
+                return True
+            else:
+                logger.info(f"Файл кэша не найден: {filename}")
+                return False
+        except Exception as e:
+            logger.error(f"Ошибка при загрузке кэша из файла: {e}")
+            return False
+
+# Создаем глобальный экземпляр кэша
+video_info_cache = VideoInfoCache()
+
+# Асинхронный класс для получения информации о видео
+class AsyncVideoInfoFetcher:
+    """Класс для асинхронного получения информации о видео."""
+    
+    def __init__(self):
+        self.loop = None
+        self.executor = ThreadPoolExecutor(max_workers=4)
+        
+    async def get_video_info(self, url: str) -> Dict[str, Any]:
+        """Асинхронно получает информацию о видео."""
+        # Проверяем, есть ли информация в кэше
+        cached_info = video_info_cache.get(url)
+        if cached_info:
+            return cached_info
+            
+        # Если нет в кэше, получаем асинхронно
+        loop = asyncio.get_event_loop()
+        info = await loop.run_in_executor(
+            self.executor,
+            self._extract_info,
+            url
+        )
+        
+        # Сохраняем в кэш
+        if info:
+            video_info_cache.set(url, info)
+            
+        return info
+        
+    def _extract_info(self, url: str) -> Dict[str, Any]:
+        """Извлекает информацию о видео с использованием yt-dlp."""
+        try:
+            ydl_opts = {'quiet': True, 'no_warnings': True}
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                return info
+        except Exception as e:
+            logger.exception(f"Ошибка при получении информации о видео: {url}")
+            return None
+            
+    async def get_video_resolutions(self, url: str) -> List[str]:
+        """Асинхронно получает доступные разрешения видео."""
+        try:
+            info = await self.get_video_info(url)
+            if not info:
+                return ['720p']  # Возвращаем значение по умолчанию
+                
+            formats = info.get('formats', [])
+            # Собираем разрешения из доступных форматов
+            resolutions = {f"{fmt['height']}p" for fmt in formats
+                            if fmt.get('height') and fmt.get('vcodec') != 'none'}
+            
+            if not resolutions:
+                return ['720p']
+                
+            # Сортировка разрешений по убыванию
+            sorted_resolutions = sorted(list(resolutions),
+                                       key=lambda x: int(x.replace('p', '')),
+                                       reverse=True)
+            
+            logger.info(f"Найдены разрешения: {sorted_resolutions}")
+            return sorted_resolutions
+        except Exception as e:
+            logger.exception(f"Ошибка при получении разрешений: {url}")
+            return ['720p']
+
+# Создаем глобальный экземпляр асинхронного получателя информации
+video_info_fetcher = AsyncVideoInfoFetcher()
+
+# Обновляем класс ResolutionWorker для использования асинхронного получения разрешений
+class ResolutionWorker(QThread):
+    resolutions_found = pyqtSignal(list)
+    error_occurred = pyqtSignal(str)
+
+    def __init__(self, url: str) -> None:
+        super().__init__()
+        self.url: str = url
+
+    def run(self) -> None:
+        try:
+            logger.info(f"Получение доступных разрешений для: {self.url}")
+            
+            # Создаем новый event loop для асинхронных операций
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Получаем разрешения асинхронно
+            resolutions = loop.run_until_complete(
+                video_info_fetcher.get_video_resolutions(self.url)
+            )
+            
+            # Закрываем loop
+            loop.close()
+            
+            self.resolutions_found.emit(resolutions)
+        except Exception as e:
+            logger.exception(f"Ошибка при получении разрешений: {self.url}")
+            user_friendly_error = "Не удалось получить доступные разрешения. Проверьте URL и подключение к интернету."
+            self.error_occurred.emit(user_friendly_error)
+
 if __name__ == '__main__':
     # Проверка наличия ffmpeg и ffprobe перед запуском
     if not check_ffmpeg():
@@ -1565,6 +1880,9 @@ if __name__ == '__main__':
         )
         show_error_message("Отсутствуют необходимые компоненты", error_message)
     
+    # Загружаем кэш при старте
+    video_info_cache.load_from_file()
+    
     app = QApplication(sys.argv)
     
     # Установка иконки для всего приложения
@@ -1576,4 +1894,8 @@ if __name__ == '__main__':
     
     window = VideoDownloaderUI()
     window.show()
+    
+    # Сохраняем кэш при выходе
+    app.aboutToQuit.connect(lambda: video_info_cache.save_to_file())
+    
     sys.exit(app.exec())
