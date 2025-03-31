@@ -5,40 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Downloader - Скачивание видео с YouTube, VK, RuTube и других сервисов</title>
     
-    <!-- SEO мета-теги -->
-    <meta name="description" content="Video Downloader - программа для скачивания видео с YouTube, ВКонтакте, RuTube, Одноклассники и Mail.ru. Поддержка 4K качества, MP3 конвертация.">
-    <meta name="keywords" content="video downloader, скачать видео, youtube downloader, вконтакте видео, rutube скачать, ok.ru видео, mail.ru видео">
+    <!-- Основные SEO мета-теги -->
+    <meta name="description" content="Video Downloader - бесплатная программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов. Поддержка 4K качества, MP3 конвертация. Скачайте сейчас!">
+    <meta name="keywords" content="video downloader, скачать видео, youtube downloader, вконтакте видео, rutube скачать, ok.ru видео, mail.ru видео, tiktok скачать, instagram видео, facebook видео, twitch скачать, vimeo скачать, telegram видео, dailymotion скачать, coub скачать, bilibili скачать">
     <meta name="author" content="MaksK">
-    <meta name="robots" content="index, follow">
-    <meta name="yandex-verification" content="0a204aa05ac38012" />
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="language" content="Russian">
+    <meta name="revisit-after" content="7 days">
+    <meta name="generator" content="Video Downloader v1.08">
     
     <!-- Open Graph мета-теги для соцсетей -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Video Downloader - Скачивание видео">
-    <meta property="og:description" content="Программа для скачивания видео с YouTube, ВКонтакте, RuTube, Одноклассники и Mail.ru">
+    <meta property="og:title" content="Video Downloader - Скачивание видео с YouTube, VK, RuTube и других сервисов">
+    <meta property="og:description" content="Бесплатная программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов. Поддержка 4K качества, MP3 конвертация.">
     <meta property="og:image" content="https://maks-mk.github.io/vid1.png">
     <meta property="og:url" content="https://maks-mk.github.io/">
+    <meta property="og:site_name" content="Video Downloader">
+    <meta property="og:locale" content="ru_RU">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://maks-mk.github.io/">
     <meta name="twitter:title" content="Video Downloader - Скачивание видео">
-    <meta name="twitter:description" content="Программа для скачивания видео с YouTube, ВКонтакте, RuTube, Одноклассники и Mail.ru">
+    <meta name="twitter:description" content="Бесплатная программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов">
     <meta name="twitter:image" content="https://maks-mk.github.io/vid1.png">
     
     <!-- Дополнительные мета-теги -->
     <meta name="application-name" content="Video Downloader">
     <meta name="theme-color" content="#2196F3">
     <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Video Downloader">
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://maks-mk.github.io/">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="vid1.png">
+    <link rel="apple-touch-icon" href="vid1.png">
     
     <!-- Верификация поисковых систем -->
-    <meta name="yandex-verification" content="your-yandex-verification-code">
+    <meta name="yandex-verification" content="0a204aa05ac38012" />
     <meta name="google-site-verification" content="your-google-verification-code">
     
     <!-- Google Fonts -->
@@ -51,6 +59,36 @@
     
     <!-- AOS Animation Library -->
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    
+    <!-- Структурированные данные Schema.org -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Video Downloader",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Windows",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "version": "1.08",
+        "description": "Программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов",
+        "featureList": [
+            "Скачивание видео в разрешении до 4K",
+            "Извлечение аудио в формате MP3",
+            "Очередь загрузок с возможностью отмены",
+            "Автоматическое определение разрешений",
+            "Поддержка cookies из браузера Chrome"
+        ],
+        "downloadUrl": "https://github.com/maks-mk/maks-mk.github.io/releases/latest",
+        "author": {
+            "@type": "Person",
+            "name": "MaksK"
+        }
+    }
+    </script>
     
     <style>
         :root {
@@ -598,53 +636,55 @@
     <header>
         <div class="logo-container">
             <div class="pulse"></div>
-            <img src="vid1.png" alt="Video Downloader Logo" class="logo">
+            <img src="vid1.png" alt="Video Downloader Logo" class="logo" width="130" height="130">
         </div>
         <h1>Video Downloader <span class="version-badge">v1.08</span></h1>
         <div class="subtitle">Скачивайте видео с популярных видеохостингов</div>
     </header>
 
     <div class="container">
-        <div class="features" data-aos="fade-up">
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                <h3><i class="fas fa-server"></i> Поддерживаемые сервисы</h3>
-                <ul>
-                    <li>YouTube (youtube.com, youtu.be)</li>
-                    <li>ВКонтакте (vk.com, vkvideo.ru)</li>
-                    <li>RuTube (rutube.ru)</li>
-                    <li>Одноклассники (ok.ru)</li>
-                    <li>Mail.ru Видео (my.mail.ru)</li>
-                    <li>TikTok (tiktok.com)</li>
-                    <li>Instagram/Facebook (instagram.com, facebook.com)</li>
-                    <li>Twitch (twitch.tv)</li>
-                    <li>Vimeo (vimeo.com)</li>
-                    <li>Telegram</li>
-                    <li>Dailymotion (dailymotion.com)</li>
-                    <li>Coub (coub.com)</li>
-                    <li>Bilibili (bilibili.com)</li>
-                </ul>
+        <nav aria-label="Основная навигация">
+            <div class="features" data-aos="fade-up">
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                    <h2><i class="fas fa-server"></i> Поддерживаемые сервисы</h2>
+                    <ul>
+                        <li>YouTube (youtube.com, youtu.be)</li>
+                        <li>ВКонтакте (vk.com, vkvideo.ru)</li>
+                        <li>RuTube (rutube.ru)</li>
+                        <li>Одноклассники (ok.ru)</li>
+                        <li>Mail.ru Видео (my.mail.ru)</li>
+                        <li>TikTok (tiktok.com)</li>
+                        <li>Instagram/Facebook (instagram.com, facebook.com)</li>
+                        <li>Twitch (twitch.tv)</li>
+                        <li>Vimeo (vimeo.com)</li>
+                        <li>Telegram</li>
+                        <li>Dailymotion (dailymotion.com)</li>
+                        <li>Coub (coub.com)</li>
+                        <li>Bilibili (bilibili.com)</li>
+                    </ul>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                    <h3><i class="fas fa-cogs"></i> Основные возможности</h3>
+                    <ul>
+                        <li>Скачивание видео в разрешении до 4K</li>
+                        <li>Извлечение аудио в формате MP3</li>
+                        <li>Очередь загрузок с возможностью отмены</li>
+                        <li>Автоматическое определение разрешений</li>
+                        <li>Поддержка cookies из браузера Chrome</li>
+                    </ul>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                    <h3><i class="fas fa-star"></i> Преимущества</h3>
+                    <ul>
+                        <li>Простой и понятный интерфейс</li>
+                        <li>Быстрая загрузка файлов</li>
+                        <li>Сохранение настроек между сеансами</li>
+                        <li>Подробное логирование операций</li>
+                        <li>Регулярные обновления</li>
+                    </ul>
+                </div>
             </div>
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                <h3><i class="fas fa-cogs"></i> Основные возможности</h3>
-                <ul>
-                    <li>Скачивание видео в разрешении до 4K</li>
-                    <li>Извлечение аудио в формате MP3</li>
-                    <li>Очередь загрузок с возможностью отмены</li>
-                    <li>Автоматическое определение разрешений</li>
-                    <li>Поддержка cookies из браузера Chrome</li>
-                </ul>
-            </div>
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-                <h3><i class="fas fa-star"></i> Преимущества</h3>
-                <ul>
-                    <li>Простой и понятный интерфейс</li>
-                    <li>Быстрая загрузка файлов</li>
-                    <li>Сохранение настроек между сеансами</li>
-                    <li>Подробное логирование операций</li>
-                    <li>Регулярные обновления</li>
-                </ul>
-            </div>
-        </div>
+        </nav>
 
         <div class="requirements" data-aos="fade-up">
             <h3><i class="fas fa-laptop"></i> Системные требования</h3>
@@ -679,7 +719,7 @@
         <p>Программа предназначена только для личного некоммерческого использования.</p>
     </footer>
 
-    <a href="#" class="back-to-top" id="backToTop">
+    <a href="#" class="back-to-top" id="backToTop" aria-label="Вернуться наверх">
         <i class="fas fa-arrow-up"></i>
     </a>
 
