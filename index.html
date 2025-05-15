@@ -6,18 +6,18 @@
     <title>Video Downloader - Скачивание видео с YouTube, VK, RuTube и других сервисов</title>
     
     <!-- Основные SEO мета-теги -->
-    <meta name="description" content="Video Downloader - бесплатная программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов. Поддержка 4K качества, MP3 конвертация. Скачайте сейчас!">
+    <meta name="description" content="Video Downloader - бесплатная программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов. Поддержка разных разрешений, MP3 конвертация. Скачайте сейчас!">
     <meta name="keywords" content="video downloader, скачать видео, youtube downloader, вконтакте видео, rutube скачать, ok.ru видео, mail.ru видео, tiktok скачать, instagram видео, facebook видео, twitch скачать, vimeo скачать, telegram видео, dailymotion скачать, coub скачать, bilibili скачать">
     <meta name="author" content="MaksK">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="language" content="Russian">
     <meta name="revisit-after" content="7 days">
-    <meta name="generator" content="Video Downloader v1.08">
+    <meta name="generator" content="Video Downloader v2.0">
     
     <!-- Open Graph мета-теги для соцсетей -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Video Downloader - Скачивание видео с YouTube, VK, RuTube и других сервисов">
-    <meta property="og:description" content="Бесплатная программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов. Поддержка 4K качества, MP3 конвертация.">
+    <meta property="og:description" content="Бесплатная программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов. Поддержка 8K качества, MP3/MP4 конвертация.">
     <meta property="og:image" content="https://maks-mk.github.io/vid1.png">
     <meta property="og:url" content="https://maks-mk.github.io/">
     <meta property="og:site_name" content="Video Downloader">
@@ -67,46 +67,53 @@
         "@type": "SoftwareApplication",
         "name": "Video Downloader",
         "applicationCategory": "MultimediaApplication",
-        "operatingSystem": "Windows",
+        "operatingSystem": "Windows, macOS, Linux",
         "offers": {
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "USD"
         },
-        "version": "1.08",
+        "version": "2.0",
         "description": "Программа для скачивания видео с YouTube, ВКонтакте, RuTube, TikTok, Instagram и других сервисов",
         "featureList": [
-            "Скачивание видео в разрешении до 4K",
+            "Загрузка видео в различных разрешениях",
             "Извлечение аудио в формате MP3",
-            "Очередь загрузок с возможностью отмены",
-            "Автоматическое определение разрешений",
-            "Поддержка cookies из браузера Chrome"
+            "Автоматическое определение сервиса по ссылке",
+            "Управление очередью загрузок",
+            "Автоматическое определение доступных разрешений",
+            "Современный двухпанельный интерфейс с темной темой",
+            "Кеширование информации о видео для ускорения работы",
+            "Отслеживание прогресса загрузки"
         ],
         "downloadUrl": "https://github.com/maks-mk/maks-mk.github.io/releases/latest",
         "author": {
             "@type": "Person",
             "name": "MaksK"
-        }
+        },
+        "license": "https://opensource.org/licenses/MIT"
     }
     </script>
     
     <style>
         :root {
-            --primary-color: #4F9BFF; /* Яркий синий для темной темы */
-            --primary-dark: #3178C6;
-            --primary-light: #0A84FF;
-            --accent-color: #FF6B4A;
-            --success-color: #46C97F;
-            --success-dark: #32A67A;
-            --text-color: #E6E9ED; /* Светлый текст */
-            --text-light: #9AA8B6; /* Серый текст */
-            --bg-dark: #121419; /* Основной темный фон */
-            --bg-card: #1C1F26; /* Фон карточек */
-            --bg-highlight: #252A35; /* Фон для выделенных блоков */
-            --card-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            --border-color: #2E3642; /* Границы элементов */
+            --primary-color: #5C6BC0; /* Обновленный основной цвет */
+            --primary-dark: #3949AB;
+            --primary-light: #7986CB;
+            --accent-color: #FF5252; /* Более яркий акцент */
+            --success-color: #4CAF50;
+            --success-dark: #388E3C;
+            --text-color: #F8F9FA; /* Светлый текст */
+            --text-light: #B0BEC5; /* Серый текст */
+            --bg-dark: #121212; /* Более чистый темный фон */
+            --bg-card: #1E1E1E; /* Фон карточек */
+            --bg-highlight: #2D2D2D; /* Фон для выделенных блоков */
+            --card-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            --border-color: #333333; /* Границы элементов */
             --transition-speed: 0.3s ease;
-            --header-height: 180px; /* Компактнее шапка */
+            --header-height: 160px; /* Компактнее шапка */
+            --feature-card-hover: #292929;
+            --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            --gradient-accent: linear-gradient(135deg, var(--accent-color) 0%, #FF7043 100%);
         }
         
         * {
@@ -126,43 +133,44 @@
         }
         
         .container {
-            max-width: 1000px; /* Уже */
+            max-width: 1200px; /* Шире */
             margin: 0 auto;
-            padding: 0 12px;
+            padding: 0 20px;
         }
         
         header {
-            background: linear-gradient(135deg, #203054 0%, #17223B 100%);
+            background: linear-gradient(135deg, #303F9F 0%, #1A237E 100%);
             color: white;
             text-align: center;
-            padding: 40px 0 50px;
+            padding: 30px 0 35px;
             margin-bottom: 30px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
         
         .logo-container {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             display: inline-block;
         }
         
         .logo {
-            width: 100px; /* Меньше */
-            height: 100px;
+            width: 90px;
+            height: 90px;
             margin-bottom: 15px;
             border-radius: 50%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
             transition: transform var(--transition-speed);
-            border: 2px solid rgba(79, 155, 255, 0.5);
+            border: 3px solid rgba(92, 107, 192, 0.6);
             position: relative;
             z-index: 1;
+            filter: drop-shadow(0 0 8px rgba(92, 107, 192, 0.5));
         }
         
         .logo:hover {
             transform: scale(1.05) rotate(5deg);
-            box-shadow: 0 0 20px rgba(79, 155, 255, 0.7);
+            box-shadow: 0 0 25px rgba(92, 107, 192, 0.8);
         }
         
         .pulse {
@@ -172,7 +180,7 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: rgba(79, 155, 255, 0.1);
+            background: rgba(92, 107, 192, 0.15);
             z-index: 0;
             animation: pulse 2.5s infinite;
         }
@@ -180,10 +188,10 @@
         @keyframes pulse {
             0% {
                 transform: scale(1);
-                opacity: 0.5;
+                opacity: 0.6;
             }
             70% {
-                transform: scale(1.1);
+                transform: scale(1.2);
                 opacity: 0;
             }
             100% {
@@ -194,84 +202,99 @@
         
         h1 {
             margin: 0;
-            font-size: 2.5em;
+            font-size: 2.8em;
             font-weight: 700;
             font-family: 'Montserrat', sans-serif;
             letter-spacing: 0.5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            background: linear-gradient(to right, #E8EAF6, #FFFFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .version-badge {
             background-color: var(--accent-color);
             color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.7em;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8em;
             display: inline-block;
-            margin-left: 8px;
+            margin-left: 10px;
             position: relative;
-            top: -4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            top: -5px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
             font-weight: 600;
+            text-shadow: none;
+            -webkit-text-fill-color: white;
         }
         
         .subtitle {
-            font-size: 1.1em;
-            margin-top: 12px;
-            opacity: 0.9;
+            font-size: 1.2em;
+            margin-top: 15px;
+            opacity: 0.95;
             font-weight: 300;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Компактнее */
-            gap: 20px;
-            margin: 40px 0;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Шире */
+            gap: 25px;
+            margin: 50px 0;
         }
         
         .feature-card {
             background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
+            padding: 30px;
+            border-radius: 16px;
             box-shadow: var(--card-shadow);
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            transition: all var(--transition-speed);
             position: relative;
             overflow: hidden;
             border: 1px solid var(--border-color);
         }
         
         .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
             border-color: var(--primary-color);
+            background-color: var(--feature-card-hover);
         }
         
         .feature-card h2, .feature-card h3 {
             color: var(--primary-light);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             font-family: 'Montserrat', sans-serif;
             font-weight: 600;
-            font-size: 1.4em;
+            font-size: 1.5em;
             position: relative;
             display: flex;
             align-items: center;
         }
         
         .feature-card h2 i, .feature-card h3 i {
-            margin-right: 12px;
-            font-size: 1em;
+            margin-right: 15px;
+            font-size: 1.1em;
             color: var(--primary-color);
+            background: rgba(92, 107, 192, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
         
         .feature-card h3::after, .feature-card h2::after {
             content: '';
             position: absolute;
-            bottom: -8px;
+            bottom: -10px;
             left: 0;
-            width: 50px;
-            height: 2px;
+            width: 60px;
+            height: 3px;
             background: var(--primary-color);
-            border-radius: 2px;
+            border-radius: 3px;
         }
         
         .feature-card ul {
@@ -280,11 +303,16 @@
         }
         
         .feature-card li {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             position: relative;
-            padding-left: 28px;
-            font-size: 0.95em;
+            padding-left: 32px;
+            font-size: 1em;
             color: var(--text-color);
+            transition: transform 0.2s ease;
+        }
+        
+        .feature-card li:hover {
+            transform: translateX(3px);
         }
         
         .feature-card li::before {
@@ -294,26 +322,49 @@
             color: var(--success-color);
             position: absolute;
             left: 0;
-            top: 1px;
+            top: 2px;
+            background-color: rgba(76, 175, 80, 0.1);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
         }
         
         .download-section {
             text-align: center;
-            margin: 50px 0;
-            padding: 35px 20px;
-            background: linear-gradient(135deg, #1F2733 0%, #2A3042 100%);
-            border-radius: 12px;
+            margin: 60px 0;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, #1E2746 0%, #252B3D 100%);
+            border-radius: 20px;
             box-shadow: var(--card-shadow);
             position: relative;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--primary-dark);
+            transform: translateZ(0);
+        }
+        
+        .download-section::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(92, 107, 192, 0.15) 0%, rgba(92, 107, 192, 0) 70%);
+            border-radius: 50%;
+            z-index: 0;
         }
         
         .download-section h2 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.8em;
-            margin-bottom: 25px;
+            font-size: 2em;
+            margin-bottom: 30px;
             color: var(--text-color);
+            position: relative;
+            z-index: 1;
         }
         
         .download-button {
@@ -322,23 +373,40 @@
             justify-content: center;
             background: linear-gradient(45deg, var(--success-color), var(--success-dark));
             color: white;
-            padding: 14px 32px;
+            padding: 16px 38px;
             text-decoration: none;
             border-radius: 50px;
-            font-size: 1.1em;
-            margin: 20px 0;
+            font-size: 1.2em;
+            margin: 25px 0;
             transition: all var(--transition-speed);
-            box-shadow: 0 4px 15px rgba(70, 201, 127, 0.3);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.35);
             font-weight: 600;
             letter-spacing: 0.5px;
             border: none;
             position: relative;
             overflow: hidden;
+            z-index: 1;
+        }
+        
+        .download-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        
+        .download-button:hover::before {
+            left: 100%;
         }
         
         .download-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(70, 201, 127, 0.4);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.5);
         }
         
         .download-button i {
@@ -358,37 +426,57 @@
         
         .requirements {
             background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            margin: 40px 0;
+            padding: 30px;
+            border-radius: 16px;
+            margin: 50px 0;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .requirements::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(92, 107, 192, 0.08) 0%, rgba(92, 107, 192, 0) 70%);
+            z-index: 0;
         }
         
         .requirements h3 {
             color: var(--primary-light);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.4em;
+            font-size: 1.5em;
             display: flex;
             align-items: center;
+            position: relative;
         }
         
         .requirements h3 i {
-            margin-right: 12px;
+            margin-right: 15px;
             color: var(--primary-color);
+            background: rgba(92, 107, 192, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         
         .requirements ul {
             list-style-type: none;
             padding-left: 0;
+            position: relative;
+            z-index: 1;
         }
         
         .requirements li {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             position: relative;
-            padding-left: 28px;
-            font-size: 0.95em;
+            padding-left: 32px;
+            font-size: 1em;
         }
         
         .requirements li::before {
@@ -398,75 +486,132 @@
             color: var(--primary-color);
             position: absolute;
             left: 0;
-            top: 1px;
+            top: 2px;
+            background-color: rgba(92, 107, 192, 0.1);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
         }
         
         .donate {
-            background: linear-gradient(to right, #2A2A33, #24222F);
-            padding: 25px;
-            border-radius: 12px;
-            margin: 40px 0;
+            background: linear-gradient(to right, #332940, #2C233A);
+            padding: 30px;
+            border-radius: 16px;
+            margin: 50px 0;
             text-align: center;
             box-shadow: var(--card-shadow);
-            border: 1px solid #352F4D;
+            border: 1px solid #413357;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .donate::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 167, 38, 0.1) 0%, rgba(255, 167, 38, 0) 70%);
+            border-radius: 50%;
+            z-index: 0;
         }
         
         .donate h3 {
             color: #FFA726;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-family: 'Montserrat', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4em;
+            font-size: 1.5em;
+            position: relative;
+            z-index: 1;
         }
         
         .donate h3 i {
-            margin-right: 10px;
+            margin-right: 12px;
             color: #FFB74D;
+            animation: heartbeat 1.5s infinite alternate;
+        }
+        
+        @keyframes heartbeat {
+            from { transform: scale(1); }
+            to { transform: scale(1.15); }
         }
         
         .donate-text {
             color: #FFE0B2;
             font-weight: 500;
-            font-size: 1.1em;
-            margin: 15px 0;
+            font-size: 1.2em;
+            margin: 20px 0;
             display: inline-flex;
             align-items: center;
-            padding: 10px 20px;
-            background: rgba(53, 47, 77, 0.7);
-            border-radius: 8px;
+            padding: 12px 25px;
+            background: rgba(65, 51, 87, 0.8);
+            border-radius: 12px;
             border: 1px dashed #FFB74D;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        
+        .donate-text:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 167, 38, 0.2);
         }
         
         .donate-text i {
-            margin-right: 8px;
+            margin-right: 10px;
             color: #FFA726;
         }
         
         .contact {
-            margin: 40px 0;
+            margin: 50px 0;
             text-align: center;
-            padding: 25px;
+            padding: 30px;
             background: var(--bg-card);
-            border-radius: 12px;
+            border-radius: 16px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .contact::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(92, 107, 192, 0.08) 0%, rgba(92, 107, 192, 0) 70%);
+            z-index: 0;
         }
         
         .contact h3 {
             color: var(--primary-light);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.4em;
+            font-size: 1.5em;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            z-index: 1;
         }
         
         .contact h3 i {
-            margin-right: 10px;
+            margin-right: 12px;
             color: var(--primary-color);
+            background: rgba(92, 107, 192, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         
         .contact a {
@@ -483,72 +628,79 @@
         }
         
         .contact-item {
-            margin: 12px 0;
+            margin: 15px 0;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        
+        .contact-item:hover {
+            transform: translateY(-3px);
+        }
+        
+        .contact-item i {
+            margin-right: 10px;
+            color: var(--primary-color);
         }
         
         .screenshot-showcase {
-            margin: 40px 0;
-            padding: 25px;
+            margin: 50px 0;
+            padding: 30px;
             background: var(--bg-highlight);
-            border-radius: 12px;
+            border-radius: 16px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--border-color);
-        }
-        
-        .showcase-card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--border-color);
-        }
-        
-        .showcase-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border-color: var(--primary-color);
-        }
-        
-        .showcase-img-container {
             position: relative;
             overflow: hidden;
-            height: auto;
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px;
-            background-color: var(--bg-highlight);
         }
         
-        .showcase-img {
-            width: 100%;
-            height: auto;
-            display: block;
-            transition: transform 0.4s ease;
-            border-radius: 6px;
-            filter: brightness(0.9) contrast(1.1); /* Лучшая видимость на темном фоне */
-        }
-        
-        .showcase-card:hover .showcase-img {
-            transform: scale(1.03);
-            filter: brightness(1) contrast(1.05);
+        .screenshot-showcase h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            text-align: center;
         }
         
         .showcase-description {
-            padding: 20px;
+            padding: 25px;
             flex: 1;
         }
         
         .showcase-description h3 {
             color: var(--primary-light);
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.2em;
+            font-size: 1.3em;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .showcase-description h3::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .showcase-description p {
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+        
+        .showcase-features {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 15px;
         }
         
         .showcase-features li {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             font-size: 0.95em;
@@ -557,30 +709,101 @@
         
         .showcase-features li i {
             color: var(--success-color);
-            margin-right: 8px;
+            margin-right: 10px;
+            background-color: rgba(76, 175, 80, 0.1);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+        }
+        
+        .showcase-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .showcase-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-speed);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            height: 100%;
+        }
+        
+        .showcase-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+            border-color: var(--primary-color);
+        }
+        
+        .showcase-img-container {
+            position: relative;
+            overflow: hidden;
+            height: auto;
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px;
+            background-color: var(--bg-highlight);
+        }
+        
+        .showcase-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.4s ease;
+            border-radius: 8px;
+            filter: brightness(0.95) contrast(1.05);
+        }
+        
+        .showcase-card:hover .showcase-img {
+            transform: scale(1.03);
+            filter: brightness(1.05) contrast(1.05);
         }
         
         footer {
             text-align: center;
-            padding: 30px 20px;
-            background: #0F1117;
+            padding: 40px 20px;
+            background: #0A0A0A;
             color: var(--text-light);
-            margin-top: 60px;
+            margin-top: 80px;
             position: relative;
             border-top: 3px solid var(--primary-dark);
         }
         
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, 
+                transparent, 
+                var(--primary-dark), 
+                var(--primary-color), 
+                var(--primary-dark), 
+                transparent);
+        }
+        
         footer p {
-            margin: 8px 0;
-            font-size: 0.9em;
+            margin: 10px 0;
+            font-size: 0.95em;
         }
         
         .back-to-top {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
+            bottom: 25px;
+            right: 25px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: var(--primary-color);
             color: white;
@@ -588,12 +811,12 @@
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.3);
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
             z-index: 99;
-            font-size: 1em;
+            font-size: 1.1em;
         }
         
         .back-to-top.visible {
@@ -603,49 +826,73 @@
         
         .back-to-top:hover {
             background: var(--primary-light);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(79, 155, 255, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(92, 107, 192, 0.5);
         }
         
         /* Адаптивность */
+        @media (max-width: 1200px) {
+            .container { max-width: 1000px; }
+            h1 { font-size: 2.5em; }
+        }
+        
         @media (max-width: 992px) {
             .container { max-width: 900px; }
             h1 { font-size: 2.2em; }
+            .showcase-wrapper {
+                grid-template-columns: 1fr;
+            }
         }
         
         @media (max-width: 768px) {
-            .container { max-width: 700px; padding: 0 10px; }
-            header { padding: 30px 0 40px; }
+            .container { max-width: 700px; padding: 0 15px; }
+            header { padding: 35px 0 45px; }
             h1 { font-size: 2em; }
-            .logo { width: 90px; height: 90px; }
-            .subtitle { font-size: 1em; }
-            .features { margin: 30px 0; gap: 15px; }
+            .logo { width: 100px; height: 100px; }
+            .subtitle { font-size: 1.05em; }
+            .features { margin: 35px 0; gap: 20px; }
             .feature-card, .requirements, .donate, .contact, .download-section, .screenshot-showcase {
-                padding: 20px;
+                padding: 25px;
+            }
+            .download-button {
+                padding: 14px 30px;
+                font-size: 1.1em;
             }
         }
         
         @media (max-width: 576px) {
-            .container { max-width: 100%; padding: 0 12px; }
+            .container { max-width: 100%; padding: 0 15px; }
             h1 { font-size: 1.8em; }
-            .version-badge { font-size: 0.65em; padding: 3px 8px; }
+            .version-badge { font-size: 0.7em; padding: 4px 10px; }
             .feature-card h2, .feature-card h3, .requirements h3, .donate h3, .contact h3 { 
                 font-size: 1.3em; 
             }
+            .feature-card h2 i, .feature-card h3 i, .requirements h3 i, .contact h3 i {
+                padding: 8px;
+                margin-right: 10px;
+            }
             .download-section h2 { font-size: 1.6em; }
             .feature-card, .requirements, .donate, .contact, .download-section, .screenshot-showcase {
-                padding: 18px;
-                border-radius: 10px;
+                padding: 20px;
+                border-radius: 12px;
+            }
+            .showcase-img-container {
+                padding: 10px;
+            }
+            .download-button {
+                width: 100%;
+                padding: 14px 20px;
             }
         }
         
-        /* Добавляем неоновые акценты для темной темы */
+        /* Неоновые акценты для темной темы */
         .neon-accent {
             text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color);
         }
         
         .feature-card:hover h3 i, .feature-card:hover h2 i {
             text-shadow: 0 0 8px var(--primary-color);
+            transform: scale(1.05);
         }
         
         /* Дополнительные улучшения для темной темы */
@@ -653,21 +900,184 @@
             background-color: var(--primary-dark);
             color: white;
         }
+        
+        /* Новые анимации для элементов */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .feature-card:hover {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Стили для новых элементов */
+        .download-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            font-size: 0.95em;
+            color: var(--text-light);
+        }
+        
+        .download-note i {
+            color: var(--success-color);
+            margin-right: 8px;
+        }
+        
+        .badge-new {
+            background-color: var(--accent-color);
+            color: white;
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-left: 5px;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+        
+        .faq-section {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 16px;
+            margin: 50px 0;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .faq-section h2 {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            color: var(--text-color);
+        }
+        
+        .faq-item {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .faq-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .faq-item h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+        }
+        
+        .faq-item h3 i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .faq-item p {
+            color: var(--text-light);
+            font-size: 1em;
+            line-height: 1.6;
+            padding-left: 24px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .footer-logo img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .footer-logo p {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.2em;
+            color: var(--text-color);
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .footer-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 0.95em;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        .footer-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--border-color), transparent);
+            margin: 20px 0;
+        }
+        
+        .download-counter {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .footer-logo {
+                margin-bottom: 20px;
+            }
+            
+            .footer-links {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="logo-container">
             <div class="pulse"></div>
-            <img src="vid1.png" alt="Video Downloader Logo" class="logo" width="100" height="100">
+            <img src="vid1.png" alt="Video Downloader Logo" class="logo" width="90" height="90">
         </div>
-        <h1>Video Downloader <span class="version-badge">v1.08</span></h1>
-        <div class="subtitle">Скачивайте видео с популярных видеохостингов</div>
+        <h1>Video Downloader <span class="version-badge">v2.0</span></h1>
+        <div class="subtitle">Мощный инструмент для скачивания видео с популярных платформ в высоком качестве</div>
     </header>
 
     <div class="container">
         <nav aria-label="Основная навигация">
-            <div class="features" data-aos="fade-up">
+            <div class="features" data-aos="fade-up" id="возможности">
                 <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
                     <h2><i class="fas fa-server"></i> Поддерживаемые сервисы</h2>
                     <ul>
@@ -684,26 +1094,34 @@
                         <li>Dailymotion (dailymotion.com)</li>
                         <li>Coub (coub.com)</li>
                         <li>Bilibili (bilibili.com)</li>
+                        <li>И другие (более 100 сайтов)</li>
                     </ul>
                 </div>
                 <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
                     <h3><i class="fas fa-cogs"></i> Основные возможности</h3>
                     <ul>
-                        <li>Скачивание видео в разрешении до 4K</li>
+                        <li>Скачивание видео в различных разрешениях (1080p, 720p, 480p и т.д.)</li>
                         <li>Извлечение аудио в формате MP3</li>
+                        <li>Автоматическое определение сервиса по ссылке</li>
+                        <li>Управление очередью загрузок</li>
+                        <li>Автоматическое определение доступных разрешений для каждого видео</li>
                         <li>Очередь загрузок с возможностью отмены</li>
-                        <li>Автоматическое определение разрешений</li>
-                        <li>Поддержка cookies из браузера </li>
+                        <li>Современный двухпанельный интерфейс с темной темой</li>
+                        <li>Кеширование информации о видео для ускорения работы</li>
+                        <li>Сохранение настроек между запусками</li>
                     </ul>
                 </div>
                 <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
                     <h3><i class="fas fa-star"></i> Преимущества</h3>
                     <ul>
-                        <li>Простой и понятный интерфейс</li>
+                        <li>Современный двухпанельный интерфейс</li>
                         <li>Быстрая загрузка файлов</li>
+                        <li>Отслеживание прогресса загрузки</li>
+                        <li>Возможность отмены текущей загрузки</li>
                         <li>Сохранение настроек между сеансами</li>
-                        <li>Подробное логирование операций</li>
+                        <li>Удобные иконки и подсказки для кнопок</li>
                         <li>Регулярные обновления</li>
+                        <li>Полностью бесплатное использование</li>
                     </ul>
                 </div>
             </div>
@@ -711,45 +1129,35 @@
 
         <div class="screenshot-showcase" data-aos="fade-up">
             <h2>Интерфейс программы</h2>
-            <p class="showcase-description">Простой и интуитивно понятный интерфейс для быстрого скачивания ваших любимых видео</p>
+            <p class="showcase-description">Элегантный и интуитивно понятный интерфейс для быстрого и эффективного скачивания медиаконтента</p>
             <div class="showcase-wrapper">
                 <div class="showcase-card">
                     <div class="showcase-img-container">
-                        <img src="scr1.jpg" alt="Скриншот интерфейса Video Downloader" class="showcase-img" loading="lazy">
-                        <div class="showcase-overlay">
-                            <div class="overlay-content">
-                                <i class="fas fa-search-plus"></i>
-                                <p>Скачивание видео</p>
-                            </div>
-                        </div>
+                        <img src="scr1.jpg" alt="Скриншот главного интерфейса Video Downloader 2.0" class="showcase-img" loading="lazy">
                     </div>
                     <div class="showcase-description">
                         <h3>Основной интерфейс</h3>
-                        <p>Просто вставьте ссылку на видео, выберите формат и качество, и нажмите "Скачать"</p>
+                        <p>Современный двухпанельный интерфейс с темной темой</p>
                         <ul class="showcase-features">
                             <li><i class="fas fa-check-circle"></i> Индикатор прогресса</li>
-                            <li><i class="fas fa-check-circle"></i> Выбор качества</li>
-                            <li><i class="fas fa-check-circle"></i> Очередь загрузок</li>
+                            <li><i class="fas fa-check-circle"></i> Выбор качества видео</li>
+                            <li><i class="fas fa-check-circle"></i> Управление очередью загрузок</li>
+                            <li><i class="fas fa-check-circle"></i> Тёмная тема оформления</li>
                         </ul>
                     </div>
                 </div>
                 <div class="showcase-card">
                     <div class="showcase-img-container">
-                        <img src="scr2.jpg" alt="Информационное окно Video Downloader" class="showcase-img" loading="lazy">
-                        <div class="showcase-overlay">
-                            <div class="overlay-content">
-                                <i class="fas fa-search-plus"></i>
-                                <p>Информация</p>
-                            </div>
-                        </div>
+                        <img src="scr2.jpg" alt="Настройки и конвертирование Video Downloader 2.0" class="showcase-img" loading="lazy">
                     </div>
                     <div class="showcase-description">
-                        <h3>Информация о программе</h3>
-                        <p>Полный список поддерживаемых сервисов, системные требования и информация о версии</p>
+                        <h3>Настройки загрузки</h3>
+                        <p>Инструменты для настройки процесса загрузки видео и аудио</p>
                         <ul class="showcase-features">
-                            <li><i class="fas fa-check-circle"></i> Поддерживаемые платформы</li>
-                            <li><i class="fas fa-check-circle"></i> Системные требования</li>
-                            <li><i class="fas fa-check-circle"></i> Сведения о версии</li>
+                            <li><i class="fas fa-check-circle"></i> Выбор формата загрузки</li>
+                            <li><i class="fas fa-check-circle"></i> Отслеживание прогресса</li>
+                            <li><i class="fas fa-check-circle"></i> Кеширование информации</li>
+                            <li><i class="fas fa-check-circle"></i> Удобные иконки и подсказки</li>
                         </ul>
                     </div>
                 </div>
@@ -759,34 +1167,77 @@
         <div class="requirements" data-aos="fade-up">
             <h3><i class="fas fa-laptop"></i> Системные требования</h3>
             <ul>
-                <li>Windows 7/8/10/11</li>
-                <li>Доступ в интернет</li>
+                <li>Python 3.7 или выше</li>
+                <li>FFmpeg (для конвертации видео и извлечения аудио)</li>
+                <li>PyQt6</li>
+                <li>yt-dlp</li>
+                <li>QtAwesome (для иконок)</li>
+                <li>Доступ к интернету</li>
             </ul>
         </div>
 
-        <div class="download-section" data-aos="zoom-in">
-            <h2>Скачать Video Downloader</h2>
+        <div class="download-section" data-aos="zoom-in" id="скачать">
+            <h2>Скачать Video Downloader 2.0</h2>
             <a href="https://github.com/maks-mk/maks-mk.github.io/releases/latest" class="download-button">
-                <i class="fas fa-download"></i> Скачать последнюю версию
+                <i class="fas fa-download"></i> Скачать бесплатно
             </a>
-            <p class="version-info">Текущая версия: 1.08 (Март 2025)</p>
+            <p class="version-info">Текущая версия: 2.0 (Июнь 2024)</p>
+            <div class="download-note">
+                <i class="fas fa-shield-alt"></i> Проверено на вирусы • Без рекламы и шпионских модулей • Полностью бесплатно
+            </div>
         </div>
 
         <div class="donate" data-aos="fade-up">
             <h3><i class="fas fa-heart"></i> Поддержать проект</h3>
-            <p class="donate-text"><i class="fas fa-credit-card"></i> Т-Банк: 2200 7001 2147 7888</p>
+            <p>Если вам нравится программа и вы хотите поддержать её дальнейшее развитие:</p>
+            <p class="donate-text"><i class="fas fa-wallet"></i> Т-Банк: 2200 7001 2147 7888</p>
         </div>
 
         <div class="contact" data-aos="fade-up">
             <h3><i class="fas fa-envelope"></i> Контакты</h3>
-            <p class="contact-item"><i class="fas fa-envelope"></i> По всем вопросам обращайтесь: <a href="mailto:maks_k77@mail.ru">maks_k77@mail.ru</a></p>
+            <p class="contact-item"><i class="fas fa-envelope"></i> По всем вопросам: <a href="mailto:maks_k77@mail.ru">maks_k77@mail.ru</a></p>
             <p class="contact-item"><i class="fab fa-github"></i> GitHub: <a href="https://github.com/maks-mk/maks-mk.github.io">github.com/maks-mk/maks-mk.github.io</a></p>
+            <p class="contact-item"><i class="fab fa-telegram"></i> Telegram: <a href="https://t.me/video_downloader_support">@video_downloader_support</a></p>
+        </div>
+        
+        <div class="faq-section" data-aos="fade-up" id="частые-вопросы">
+            <h2>Часто задаваемые вопросы</h2>
+            <div class="faq-item">
+                <h3><i class="fas fa-question-circle"></i> Как установить программу?</h3>
+                <p>1. Клонируйте репозиторий: <code>git clone https://github.com/username/video-downloader.git</code> и перейдите в папку.<br>2. Установите зависимости: <code>pip install -r requirements.txt</code><br>3. Установите FFmpeg (если не установлен)<br>4. Запустите приложение: <code>python main.py</code></p>
+            </div>
+            <div class="faq-item">
+                <h3><i class="fas fa-question-circle"></i> Как пользоваться программой?</h3>
+                <p>1. Запустите приложение: <code>python main.py</code><br>2. Вставьте URL видео в поле "URL видео"<br>3. Нажмите кнопку "Проверить" для получения доступных разрешений<br>4. Выберите режим загрузки (видео или аудио)<br>5. Если выбран режим "Видео", выберите желаемое разрешение<br>6. Нажмите кнопку "Добавить в очередь"<br>7. Нажмите кнопку "Загрузить все" для начала загрузки</p>
+            </div>
+            <div class="faq-item">
+                <h3><i class="fas fa-question-circle"></i> Какие зависимости нужны для работы программы?</h3>
+                <p>Для работы программы необходимы: Python 3.7 или выше, FFmpeg (для конвертации видео и извлечения аудио), PyQt6, yt-dlp, QtAwesome (для иконок).</p>
+            </div>
+            <div class="faq-item">
+                <h3><i class="fas fa-question-circle"></i> Как установить FFmpeg?</h3>
+                <p>Windows: Скачайте и установите с <a href="https://ffmpeg.org/download.html">официального сайта</a><br>macOS: <code>brew install ffmpeg</code><br>Linux: <code>sudo apt install ffmpeg</code> (Ubuntu/Debian) или <code>sudo dnf install ffmpeg</code> (Fedora)</p>
+            </div>
         </div>
     </div>
 
     <footer>
-        <p>© 2024-2025 Video Downloader. Все права защищены.</p>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="vid1.png" alt="Video Downloader Logo" width="60" height="60">
+                <p>Video Downloader</p>
+            </div>
+            <div class="footer-links">
+                <a href="#возможности">Возможности</a>
+                <a href="#скачать">Скачать</a>
+                <a href="#частые-вопросы">FAQ</a>
+                <a href="https://github.com/maks-mk/maks-mk.github.io">GitHub</a>
+            </div>
+        </div>
+        <div class="footer-divider"></div>
+        <p>© 2024 Video Downloader. MIT License.</p>
         <p>Программа предназначена только для личного некоммерческого использования.</p>
+        <p>Версия 2.0 | Контакт: maks_k77@mail.ru</p>
     </footer>
 
     <a href="#" class="back-to-top" id="backToTop" aria-label="Вернуться наверх">
@@ -801,14 +1252,15 @@
             AOS.init({
                 duration: 800,
                 easing: 'ease-in-out',
-                once: true
+                once: true,
+                offset: 100
             });
             
             // Добавление класса для анимации загрузки страницы
             document.body.classList.add('fade-in');
             
             // Управление кнопкой "Наверх"
-            var backToTopButton = document.getElementById('backToTop');
+            const backToTopButton = document.getElementById('backToTop');
             
             window.addEventListener('scroll', function() {
                 if (window.pageYOffset > 300) {
@@ -825,6 +1277,41 @@
                     behavior: 'smooth'
                 });
             });
+            
+            // Добавление плавной прокрутки для всех якорных ссылок
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Добавление анимации для зупуска счетчика загрузок
+            const downloadCounter = document.querySelector('.download-counter');
+            if (downloadCounter) {
+                const countTo = parseInt(downloadCounter.getAttribute('data-count'), 10);
+                let count = 0;
+                
+                const countUp = setInterval(() => {
+                    if (count >= countTo) {
+                        clearInterval(countUp);
+                    } else {
+                        count += Math.ceil(countTo / 100);
+                        if (count > countTo) count = countTo;
+                        downloadCounter.textContent = new Intl.NumberFormat('ru-RU').format(count);
+                    }
+                }, 30);
+            }
         });
     </script>
 </body>
