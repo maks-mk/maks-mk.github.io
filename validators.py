@@ -1,15 +1,148 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import re
 import os
 import json
 import logging
 from datetime import datetime
 from typing import Tuple, Dict, Any, List, Set
+from functools import lru_cache
+from collections import defaultdict
+import time
 
 logger = logging.getLogger('VideoDownloader')
+
+# Импортируем профайлер (с отложенным импортом для избежания циклических зависимостей)
+try:
+    from optimizations import performance_profiler
+except ImportError:
+    # Заглушка если модуль оптимизации недоступен
+    class DummyProfiler:
+        def profile(self, name=None):
+            def decorator(func):
+                return func
+            return decorator
+    performance_profiler = DummyProfiler()
 
 class URLValidationError(Exception):
     """Ошибка валидации URL"""
     pass
+
+
+class DomainTrie:
+    """Trie-структура для быстрого поиска доменов."""
+
+    def __init__(self):
+        self.root = {}
+        self.services = {}
+
+    def add_domain(self, domain: str, service: str):
+        """Добавляет домен в trie."""
+        # Разбиваем домен на части (в обратном порядке для эффективного поиска)
+        parts = domain.split('.')[::-1]
+        node = self.root
+
+        for part in parts:
+            if part not in node:
+                node[part] = {}
+            node = node[part]
+
+        # Помечаем конец домена
+        node['_service'] = service
+
+    def find_service(self, url: str) -> str:
+        """Находит сервис по URL."""
+        try:
+            # Извлекаем домен из URL
+            if '://' in url:
+                domain = url.split('://')[1].split('/')[0]
+            else:
+                domain = url.split('/')[0]
+
+            # Убираем www. если есть
+            if domain.startswith('www.'):
+                domain = domain[4:]
+
+            # Ищем в trie
+            parts = domain.split('.')[::-1]
+            node = self.root
+
+            for part in parts:
+                if part in node:
+                    node = node[part]
+                    if '_service' in node:
+                        return node['_service']
+                else:
+                    break
+
+            return 'Неизвестный сервис'
+        except Exception:
+            return 'Неизвестный сервис'
+
+
+class ServiceCache:
+    """Кэш для результатов определения сервиса с TTL."""
+
+    def __init__(self, max_size: int = 1000, ttl: int = 3600):
+        self.cache = {}
+        self.timestamps = {}
+        self.max_size = max_size
+        self.ttl = ttl  # время жизни в секундах
+
+    def get(self, url: str) -> str:
+        """Получает сервис из кэша."""
+        current_time = time.time()
+
+        if url in self.cache:
+            # Проверяем TTL
+            if current_time - self.timestamps[url] < self.ttl:
+                return self.cache[url]
+            else:
+                # Удаляем устаревшую запись
+                del self.cache[url]
+                del self.timestamps[url]
+
+        return None
+
+    def set(self, url: str, service: str):
+        """Добавляет сервис в кэш."""
+        current_time = time.time()
+
+        # Если кэш полон, удаляем самые старые записи
+        if len(self.cache) >= self.max_size:
+            self._cleanup_old_entries()
+
+        self.cache[url] = service
+        self.timestamps[url] = current_time
+
+    def _cleanup_old_entries(self):
+        """Удаляет старые записи из кэша."""
+        current_time = time.time()
+        expired_keys = []
+
+        for url, timestamp in self.timestamps.items():
+            if current_time - timestamp >= self.ttl:
+                expired_keys.append(url)
+
+        # Удаляем устаревшие записи
+        for key in expired_keys:
+            del self.cache[key]
+            del self.timestamps[key]
+
+        # Если все еще полон, удаляем самые старые
+        if len(self.cache) >= self.max_size:
+            sorted_items = sorted(self.timestamps.items(), key=lambda x: x[1])
+            to_remove = len(sorted_items) - self.max_size + 100  # Удаляем с запасом
+
+            for url, _ in sorted_items[:to_remove]:
+                del self.cache[url]
+                del self.timestamps[url]
+
+    def clear(self):
+        """Очищает кэш."""
+        self.cache.clear()
+        self.timestamps.clear()
 
 
 class VideoURL:
@@ -58,6 +191,11 @@ class VideoURL:
     _combined_patterns = {}
     _compiled_patterns = {}
     _patterns_loaded = False
+
+    # Оптимизированные структуры данных
+    _domain_trie = DomainTrie()
+    _service_cache = ServiceCache(max_size=1000, ttl=3600)
+    _trie_initialized = False
     
     @classmethod
     def _init_combined_patterns(cls):
@@ -79,7 +217,44 @@ class VideoURL:
                         for pattern in patterns
                     ]
             logger.info("Объединенные регулярные выражения инициализированы")
-    
+
+    @classmethod
+    def _init_domain_trie(cls):
+        """Инициализирует trie-структуру для быстрого поиска доменов."""
+        if not cls._trie_initialized:
+            domain_map = {
+                'youtube.com': 'YouTube',
+                'youtu.be': 'YouTube',
+                'music.youtube.com': 'YouTube',
+                'vk.com': 'VK',
+                'vkvideo.ru': 'VK',
+                'rutube.ru': 'RuTube',
+                'ok.ru': 'Одноклассники',
+                'mail.ru': 'Mail.ru',
+                'my.mail.ru': 'Mail.ru',
+                'bilibili.com': 'Bilibili',
+                'b23.tv': 'Bilibili',
+                'tiktok.com': 'TikTok',
+                'vm.tiktok.com': 'TikTok',
+                'vt.tiktok.com': 'TikTok',
+                'twitch.tv': 'Twitch',
+                'clips.twitch.tv': 'Twitch',
+                'vimeo.com': 'Vimeo',
+                'player.vimeo.com': 'Vimeo',
+                'facebook.com': 'Facebook',
+                'fb.watch': 'Facebook',
+                'instagram.com': 'Instagram',
+                't.me': 'Telegram',
+                'dailymotion.com': 'Dailymotion',
+                'coub.com': 'Coub'
+            }
+
+            for domain, service in domain_map.items():
+                cls._domain_trie.add_domain(domain, service)
+
+            cls._trie_initialized = True
+            logger.info("Trie-структура доменов инициализирована")
+
     @classmethod
     def load_patterns_from_config(cls) -> bool:
         """
@@ -147,67 +322,72 @@ class VideoURL:
             return False
 
     @classmethod
+    @performance_profiler.profile("VideoURL.get_service_name")
     def get_service_name(cls, url: str) -> str:
-        """Определяет название видеосервиса по URL."""
+        """Определяет название видеосервиса по URL с оптимизацией."""
         if not url:
             return 'Неизвестный сервис'
-        
-        # Загружаем паттерны при первом запросе
+
+        # Проверяем кэш сначала
+        cached_service = cls._service_cache.get(url)
+        if cached_service:
+            return cached_service
+
+        # Инициализируем структуры данных при первом запросе
         if not cls._patterns_loaded:
             cls.load_patterns_from_config()
             cls._init_combined_patterns()
+            cls._init_domain_trie()
             cls._patterns_loaded = True
-            
-        # Проверяем по объединенным паттернам для ускорения
-        for service, compiled_pattern in cls._compiled_patterns.items():
-            try:
-                if isinstance(compiled_pattern, re.Pattern):
-                    if compiled_pattern.match(url):
-                        return service
-                else:
-                    # Если используются отдельные скомпилированные паттерны
-                    for _, pattern_re in compiled_pattern:
-                        if pattern_re.match(url):
-                            return service
-            except Exception as e:
-                logger.warning(f"Ошибка при проверке URL для {service}: {e}")
-                    
-        # Проверка по доменам, если точное совпадение не найдено
-        domain_map = {
-            'youtube.com': 'YouTube',
-            'youtu.be': 'YouTube',
-            'music.youtube.com': 'YouTube',
-            'vk.com': 'VK',
-            'vkvideo.ru': 'VK',
-            'rutube.ru': 'RuTube',
-            'ok.ru': 'Одноклассники',
-            'mail.ru': 'Mail.ru',
-            'my.mail.ru': 'Mail.ru',
-            'bilibili.com': 'Bilibili',
-            'b23.tv': 'Bilibili',
-            'tiktok.com': 'TikTok',
-            'vm.tiktok.com': 'TikTok',
-            'vt.tiktok.com': 'TikTok',
-            'twitch.tv': 'Twitch',
-            'clips.twitch.tv': 'Twitch',
-            'vimeo.com': 'Vimeo',
-            'player.vimeo.com': 'Vimeo',
-            'facebook.com': 'Facebook',
-            'fb.watch': 'Facebook',
-            'instagram.com': 'Instagram',
-            't.me': 'Telegram',
-            'dailymotion.com': 'Dailymotion',
-            'coub.com': 'Coub'
-        }
-        
-        for domain, service in domain_map.items():
-            if domain in url:
-                # Если домен найден, но формат не соответствует паттернам, 
-                # логируем его для возможного добавления в будущем
-                cls.log_unknown_url_format(service, url)
-                return service
-            
-        return 'Неизвестный сервис'
+
+        service = 'Неизвестный сервис'
+
+        # Сначала быстрая проверка по trie-структуре доменов
+        trie_service = cls._domain_trie.find_service(url)
+        if trie_service != 'Неизвестный сервис':
+            # Проверяем точное соответствие паттернам для найденного сервиса
+            if trie_service in cls._compiled_patterns:
+                compiled_pattern = cls._compiled_patterns[trie_service]
+                try:
+                    if isinstance(compiled_pattern, re.Pattern):
+                        if compiled_pattern.match(url):
+                            service = trie_service
+                    else:
+                        # Если используются отдельные скомпилированные паттерны
+                        for _, pattern_re in compiled_pattern:
+                            if pattern_re.match(url):
+                                service = trie_service
+                                break
+                except Exception as e:
+                    logger.warning(f"Ошибка при проверке URL для {trie_service}: {e}")
+
+            # Если паттерн не совпал, но домен известен
+            if service == 'Неизвестный сервис':
+                cls.log_unknown_url_format(trie_service, url)
+                service = trie_service
+        else:
+            # Если домен не найден в trie, проверяем все паттерны
+            for service_name, compiled_pattern in cls._compiled_patterns.items():
+                try:
+                    if isinstance(compiled_pattern, re.Pattern):
+                        if compiled_pattern.match(url):
+                            service = service_name
+                            break
+                    else:
+                        # Если используются отдельные скомпилированные паттерны
+                        for _, pattern_re in compiled_pattern:
+                            if pattern_re.match(url):
+                                service = service_name
+                                break
+                        if service != 'Неизвестный сервис':
+                            break
+                except Exception as e:
+                    logger.warning(f"Ошибка при проверке URL для {service_name}: {e}")
+
+        # Кэшируем результат
+        cls._service_cache.set(url, service)
+
+        return service
 
     @classmethod
     def log_unknown_url_format(cls, service: str, url: str) -> None:
@@ -223,6 +403,7 @@ class VideoURL:
             logger.error(f"Ошибка при логировании неизвестного формата URL: {e}")
 
     @classmethod
+    @performance_profiler.profile("VideoURL.is_valid")
     def is_valid(cls, url: str) -> Tuple[bool, str]:
         """
         Проверяет валидность URL для поддерживаемых видеосервисов.
@@ -334,4 +515,5 @@ class VideoURL:
 # Инициализируем паттерны при импорте
 VideoURL.load_patterns_from_config()
 VideoURL._init_combined_patterns()
-VideoURL._patterns_loaded = True 
+VideoURL._init_domain_trie()
+VideoURL._patterns_loaded = True

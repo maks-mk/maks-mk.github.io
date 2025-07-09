@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 Методы для класса VideoDownloaderUI
 """
@@ -195,6 +198,15 @@ def load_settings(self) -> None:
         self.audio_radio.setChecked(True)
     else:
         self.video_radio.setChecked(True)
+
+    # Загружаем папку для сохранения
+    import os
+    default_folder = os.path.join(os.path.expanduser("~"), "Downloads")
+    folder_path = settings.value("output_folder", default_folder, type=str)
+    if os.path.exists(folder_path):
+        self.folder_input.setText(folder_path)
+    else:
+        self.folder_input.setText(default_folder)
         
     # Размеры сплиттера
     if settings.contains("splitter_sizes"):
@@ -230,6 +242,11 @@ def save_settings(self) -> None:
     
     mode = "audio" if self.audio_radio.isChecked() else "video"
     settings.setValue("mode", mode)
+
+    # Сохраняем папку для сохранения
+    folder_path = self.folder_input.text().strip()
+    if folder_path:
+        settings.setValue("output_folder", folder_path)
     
     # Сохраняем размеры сплиттера
     try:
@@ -241,20 +258,61 @@ def save_settings(self) -> None:
         logger = logging.getLogger('VideoDownloader')
         logger.error(f"Ошибка при сохранении размеров сплиттера: {e}")
 
+def browse_folder(self) -> None:
+    """Открывает диалог выбора папки для сохранения файлов."""
+    from PyQt6.QtWidgets import QFileDialog
+    import os
+    import logging
+    logger = logging.getLogger('VideoDownloader')
+
+    # Получаем текущую папку или используем папку Downloads по умолчанию
+    current_folder = self.folder_input.text().strip()
+    if not current_folder or not os.path.exists(current_folder):
+        current_folder = os.path.join(os.path.expanduser("~"), "Downloads")
+
+    # Открываем диалог выбора папки
+    folder = QFileDialog.getExistingDirectory(
+        self,
+        "Выберите папку для сохранения файлов",
+        current_folder,
+        QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks
+    )
+
+    if folder:
+        self.folder_input.setText(folder)
+        # Сохраняем выбранную папку в настройках
+        self.save_settings()
+        logger.info(f"Выбрана папка для сохранения: {folder}")
+
 def add_to_queue(self) -> None:
     """Добавляет текущий URL в очередь загрузок."""
+    import os
+
     url: str = self.url_input.text().strip()
-    
+
     if not url:
         QMessageBox.warning(self, "Ошибка", "Введите URL видео")
         return
-        
+
+    # Проверяем выбранную папку для сохранения
+    folder_path = self.folder_input.text().strip()
+    if not folder_path:
+        QMessageBox.warning(self, "Ошибка", "Выберите папку для сохранения файлов")
+        return
+
+    if not os.path.exists(folder_path):
+        QMessageBox.warning(self, "Ошибка", f"Папка не существует: {folder_path}")
+        return
+
     # Проверяем, является ли URL валидным
     is_valid, error_message = VideoURL.is_valid(url)
     if not is_valid:
         QMessageBox.warning(self, "Ошибка", f"Некорректный URL: {error_message}")
         return
-        
+
+    # Устанавливаем папку для сохранения в менеджере загрузок
+    self.download_manager.set_output_dir(folder_path)
+
     mode: str = "video" if self.video_radio.isChecked() else "audio"
     resolution: str = self.resolution_combo.currentText() if mode == "video" else None
 
@@ -420,7 +478,7 @@ def show_about_dialog(self, event) -> None:
     if success:
         about_text = (
             f"<div style='text-align: center;'><img src='{image_path}' width='120' height='120'/></div>"
-            "<h2 style='text-align: center;'>Video/Audio Downloader by MaksK v1.098</h2>"
+            "<h2 style='text-align: center;'>Video/Audio Downloader by MaksK v1.1</h2>"
             "<p>Приложение для скачивания видео и аудио с различных видеохостингов</p>"
             "<ul>"
             "<li>YouTube и YouTube Music</li>"
@@ -432,7 +490,7 @@ def show_about_dialog(self, event) -> None:
     else:
         about_text = (
             "<div style='text-align: center;'><span style='font-size: 80px; color: red;'>!</span></div>"
-            "<h2 style='text-align: center;'>Video/Audio Downloader v1.098</h2>"
+            "<h2 style='text-align: center;'>Video/Audio Downloader v1.1</h2>"
             "<p>Приложение для скачивания видео и аудио с различных видеохостингов</p>"
         )
     

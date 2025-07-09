@@ -9,7 +9,12 @@ def install_requirements() -> None:
     requirements = [
         'pyinstaller',
         'PyQt6',
-        'yt-dlp'
+        'yt-dlp',
+        'Pillow',
+        'requests',
+        'packaging',
+        'qtawesome',
+        'psutil'
     ]
     
     print("Проверка и установка необходимых пакетов...")
@@ -21,18 +26,43 @@ def install_requirements() -> None:
             print(f"Установка {package}...")
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-def get_project_resources() -> List[str]:
-    """Возвращает список ресурсов проекта"""
-    return ['vid1.png', 'vid1.ico']
+def get_project_files() -> List[str]:
+    """Возвращает список файлов проекта"""
+    # Основные модули
+    modules = [
+        'main.py',
+        'gui_dark.py',
+        'gui_dark_methods.py',
+        'downloader.py',
+        'validators.py',
+        'utils.py',
+        'optimizations.py',
+        'yt_dlp_utils.py'  # Добавлен новый модуль
+    ]
+
+    # Ресурсы
+    resources = [
+        'vid1.png',
+        'vid1.ico',
+        'url_patterns.json',
+        'requirements.txt'
+    ]
+
+    return modules + resources
 
 def check_requirements() -> Tuple[bool, str]:
     """Проверяет наличие необходимых зависимостей"""
     try:
-        import PyQt6
-        import yt_dlp
+        import PyQt6  # noqa: F401
+        import yt_dlp  # noqa: F401
+        import PIL  # noqa: F401
+        import requests  # noqa: F401
+        import packaging  # noqa: F401
+        import qtawesome  # noqa: F401
+        import psutil  # noqa: F401
         # Используем subprocess для проверки pyinstaller
-        subprocess.run(['pyinstaller', '--version'], 
-                      stdout=subprocess.PIPE, 
+        subprocess.run(['pyinstaller', '--version'],
+                      stdout=subprocess.PIPE,
                       stderr=subprocess.PIPE,
                       check=True)
         return True, ""
@@ -69,21 +99,48 @@ def build_exe() -> bool:
         # Очистка директорий сборки
         cleanup_build_dirs()
 
+        # Проверка наличия необходимых файлов
+        required_files = get_project_files()
+        missing_files = [f for f in required_files if not os.path.exists(f)]
+        if missing_files:
+            print(f"Ошибка: Следующие необходимые файлы не найдены: {', '.join(missing_files)}")
+            return False
+        
+        # Создадим пустые директории для сохранения
+        os.makedirs('dist/downloads', exist_ok=True)
+        os.makedirs('dist/logs', exist_ok=True)
+
         # Запуск PyInstaller с указанными параметрами
+        datas = [
+            # Основные ресурсы
+            'vid1.png;.',
+            'vid1.ico;.',
+            'url_patterns.json;.',
+            # Внешние инструменты (если есть)
+        ]
+
+        # Добавляем FFmpeg файлы если они есть
+        if os.path.exists('ffmpeg.exe'):
+            datas.append('ffmpeg.exe;.')
+        if os.path.exists('ffprobe.exe'):
+            datas.append('ffprobe.exe;.')
+        
         cmd = [
             'pyinstaller',
             '--noconfirm',
-            '--add-data', 'vid1.png;.',
-           # '--add-data', 'config.py;.',
-            '--add-data', 'ffmpeg.exe;.',
-            '--add-data', 'ffprobe.exe;.',
             '--onefile',
             '--windowed',
             '--icon', 'vid1.ico',
             '--clean',
             '--name', 'VideoDownloader',
-            'video.py'
+            # Основной скрипт - теперь main.py
+            'main.py'
         ]
+        
+        # Добавляем все дополнительные данные
+        for data in datas:
+            cmd.extend(['--add-data', data])
+        
         subprocess.run(cmd, check=True)
 
         # Проверка результата сборки
@@ -107,17 +164,25 @@ def main() -> None:
     """Основная функция сборки"""
     print("Начало сборки VideoDownloader...")
     
-    # Проверяем наличие обоих файлов - и .png для GUI, и .ico для иконки exe
-    if not os.path.exists('vid1.png'):
-        print("Ошибка: Файл vid1.png не найден!")
+    # Проверяем наличие необходимых файлов
+    required_files = get_project_files()
+    missing_files = [f for f in required_files if not os.path.exists(f)]
+    if missing_files:
+        print(f"Ошибка: Следующие необходимые файлы не найдены: {', '.join(missing_files)}")
         sys.exit(1)
         
-    if not os.path.exists('vid1.ico'):
-        print("Ошибка: Файл vid1.ico не найден!")
-        sys.exit(1)
+    # Проверяем наличие дополнительных необходимых файлов
+    additional_files = ['ffmpeg.exe', 'ffprobe.exe']
+    missing_additional = [f for f in additional_files if not os.path.exists(f)]
+    if missing_additional:
+        print(f"Предупреждение: Следующие дополнительные файлы не найдены: {', '.join(missing_additional)}")
+        print("Эти файлы необходимы для работы с видео. Убедитесь, что они будут доступны при запуске программы.")
 
     if build_exe():
         print("\nПроцесс сборки успешно завершен!")
+        print("\nРекомендации после сборки:")
+        print("1. Создайте папки 'downloads' и 'logs' в директории с исполняемым файлом")
+        print("2. Убедитесь, что файлы ffmpeg.exe и ffprobe.exe находятся рядом с исполняемым файлом")
     else:
         print("\nПроцесс сборки завершился с ошибками")
         sys.exit(1)

@@ -18,6 +18,8 @@ from PyQt6.QtCore import Qt
 from utils import setup_logging, check_ffmpeg
 # Импортируем обновленный интерфейс с темной темой
 from gui_dark import VideoDownloaderUI
+# Импортируем оптимизации
+from optimizations import optimize_for_large_files, performance_profiler
 
 
 def show_error_dialog(error_type, error_value, error_tb):
@@ -78,11 +80,15 @@ def main():
     # Проверяем наличие ffmpeg
     if not check_ffmpeg():
         logger.warning("ffmpeg не найден. Некоторые функции могут работать некорректно.")
-    
+
+    # Применяем оптимизации для работы с большими файлами
+    optimize_for_large_files()
+    logger.info("Оптимизации применены")
+
     # Запускаем приложение
     app = QApplication(sys.argv)
     app.setApplicationName("Video Downloader")
-    app.setApplicationVersion("1.098")
+    app.setApplicationVersion("1.1")
     
     # Отключаем "мультикасание" на Windows, которое может вызывать проблемы
     os.environ["QT_QUICK_CONTROLS_HOVER_ENABLED"] = "0"
@@ -93,9 +99,19 @@ def main():
     # Создаем и показываем основное окно с улучшенным темным интерфейсом
     main_window = VideoDownloaderUI()
     main_window.show()
-    
+
     # Запускаем основной цикл событий
-    return app.exec()
+    try:
+        result = app.exec()
+
+        # Логируем статистику производительности при завершении
+        logger.info("Завершение приложения, логирование статистики производительности...")
+        performance_profiler.log_stats()
+
+        return result
+    except Exception as e:
+        logger.exception(f"Ошибка при завершении приложения: {e}")
+        return 1
 
 
 if __name__ == "__main__":
